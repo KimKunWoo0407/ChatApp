@@ -15,8 +15,11 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
 import com.kkw.mychatapp.data.Message
+import com.kkw.mychatapp.databinding.DateDeviderItemBinding
 import com.kkw.mychatapp.databinding.ListTalkItemBinding
 import com.kkw.mychatapp.databinding.ListTalkItemOtherBinding
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 class RecyclerMessageAdapter(
@@ -32,6 +35,10 @@ class RecyclerMessageAdapter(
 
     init{
         getMessages()
+    }
+
+    fun getLatestMessage(): Message? {
+        return messages.lastOrNull()
     }
 
     fun getMessages(){
@@ -54,7 +61,12 @@ class RecyclerMessageAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (messages[position].senderUid.equals(myUid)) 1 else 0
+
+        return if(messages[position].isDate){
+            2
+        }else{
+            if (messages[position].senderUid == myUid) 1 else 0
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -62,22 +74,28 @@ class RecyclerMessageAdapter(
             1->{
                 val view = LayoutInflater.from(context)
                     .inflate(R.layout.list_talk_item, parent, false)
-
                 MyMessageViewHolder(ListTalkItemBinding.bind(view))
 
-            }else->{
+            }0->{
                 val view = LayoutInflater.from(context)
                     .inflate(R.layout.list_talk_item_other, parent, false)
                 OtherMessageViewHolder(ListTalkItemOtherBinding.bind(view))
+            }else->{
+                val view = LayoutInflater.from(context)
+                    .inflate(R.layout.date_devider_item, parent, false)
+                DateDivider(DateDeviderItemBinding.bind(view))
             }
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if(messages[position].senderUid.equals(myUid)) {
+        if(messages[position].senderUid == myUid) {
             (holder as MyMessageViewHolder).bind(position)
         }else{
-            (holder as OtherMessageViewHolder).bind(position)
+            if(!messages[position].isDate)
+                (holder as OtherMessageViewHolder).bind(position)
+            else
+                (holder as DateDivider).bind(position)
         }
     }
 
@@ -85,6 +103,27 @@ class RecyclerMessageAdapter(
         return messages.size
     }
 
+    inner class DateDivider(itemView:DateDeviderItemBinding): RecyclerView.ViewHolder(itemView.root){
+        var txtDate = itemView.txtDate
+
+        fun bind(position: Int){
+            var date = messages[position].sent_date
+            txtDate.text = getDateText(date)
+        }
+
+        fun getDateText(sentDate: String):String{
+            var dateText = ""
+
+            if(sentDate.isNotBlank()){
+                var format = "yyyy년 MM월 dd일 (E)"
+                var formatter = DateTimeFormatter.ofPattern(format)
+                var d = LocalDateTime.parse(sentDate, formatter)
+                dateText += d.toString()
+            }
+
+            return dateText
+        }
+    }
 
     inner class MyMessageViewHolder(itemView:ListTalkItemBinding): RecyclerView.ViewHolder(itemView.root){
         var background = itemView.background

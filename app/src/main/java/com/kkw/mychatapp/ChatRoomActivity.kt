@@ -88,18 +88,40 @@ class ChatRoomActivity : AppCompatActivity() {
             setupRecycler()
     }
 
+    fun saveIntoDB(message: Message){
+        FirebaseDatabase.getInstance().getReference("ChatRoom").child("chatRooms")
+            .child(chatRoomKey).child("messages")
+            .push().setValue(message).addOnSuccessListener {
+                Log.i("putMessage", "성공")
+                edit_message.text.clear()
+            }.addOnCanceledListener {
+                Log.i("putMessage", "실패")
+            }
+    }
+
     fun putMessage(){
         try{
-            var message = Message(myUid, getDateTimeString(), edit_message.text.toString())
+
+            //날짜 구분
+            var curDate = getDateTimeString()
+            var latest  = (recycler_talks.adapter as RecyclerMessageAdapter).getLatestMessage()
+            var dateAdd = false
+
+            if(latest==null || curDate.substring(6,2) != latest.sent_date.substring(6,2)){
+                dateAdd = true
+            }
+
+            var dateMessage:Message
+
+            if(dateAdd){
+                dateMessage = Message("0000", curDate, "", isDate = true)
+                saveIntoDB(dateMessage)
+            }
+
+            var message = Message(myUid, curDate, edit_message.text.toString())
             Log.i("ChatRoomKey", chatRoomKey)
-            FirebaseDatabase.getInstance().getReference("ChatRoom").child("chatRooms")
-                .child(chatRoomKey).child("messages")
-                .push().setValue(message).addOnSuccessListener {
-                    Log.i("putMessage", "성공")
-                    edit_message.text.clear()
-                }.addOnCanceledListener {
-                    Log.i("putMessage", "실패")
-                }
+            saveIntoDB(message)
+
         }catch (e: Exception){
             e.printStackTrace()
             Log.i("putMessage", "오류")
