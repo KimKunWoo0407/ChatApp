@@ -67,7 +67,7 @@ class RecyclerChatRoomsAdapter(val context: Context) : RecyclerView.Adapter<Recy
     fun setUpMessageCount(holder: ViewHolder, position: Int){
         try{
             var unconfirmedCount = chatRooms[position].messages!!.filter {
-                !it.value.confirmed && !it.value.senderUid.equals(myUid)
+                !it.value.confirmed && it.value.senderUid != myUid
             }.size
 
             if(unconfirmedCount>0){
@@ -147,7 +147,7 @@ class RecyclerChatRoomsAdapter(val context: Context) : RecyclerView.Adapter<Recy
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val userIdList = chatRooms[position].users!!.keys
-        var opponent = userIdList.first{!it.equals(myUid)}
+        var opponent = userIdList.first{ it != myUid }
 
         FirebaseDatabase.getInstance().getReference("User").child("users").orderByChild("uid")
             .equalTo(opponent)

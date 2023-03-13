@@ -104,17 +104,18 @@ class ChatRoomActivity : AppCompatActivity() {
 
             //날짜 구분
             var curDate = getDateTimeString()
+
             var latest  = (recycler_talks.adapter as RecyclerMessageAdapter).getLatestMessage()
             var dateAdd = false
 
-            if(latest==null || curDate.substring(6,2) != latest.sent_date.substring(6,2)){
+            if(latest==null || curDate.substring(0,4) != latest.sent_date.substring(0,4) || curDate.substring(6,8) != latest.sent_date.substring(6,8)){
                 dateAdd = true
             }
 
             var dateMessage:Message
 
             if(dateAdd){
-                dateMessage = Message("0000", curDate, "", isDate = true)
+                dateMessage = Message("0000", curDate, "", date = true)
                 saveIntoDB(dateMessage)
             }
 
@@ -152,7 +153,7 @@ class ChatRoomActivity : AppCompatActivity() {
         recycler_talks.adapter = RecyclerMessageAdapter(this, chatRoomKey, opponentUser.uid)
     }
 
-    fun getDateTimeString() : String{
+    private fun getDateTimeString() : String{
         try {
             var localDateTime = LocalDateTime.now()
             localDateTime.atZone(TimeZone.getDefault().toZoneId())

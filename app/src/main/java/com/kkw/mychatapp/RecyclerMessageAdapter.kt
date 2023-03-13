@@ -18,19 +18,24 @@ import com.kkw.mychatapp.data.Message
 import com.kkw.mychatapp.databinding.DateDeviderItemBinding
 import com.kkw.mychatapp.databinding.ListTalkItemBinding
 import com.kkw.mychatapp.databinding.ListTalkItemOtherBinding
+import java.text.MessageFormat
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.*
+import kotlin.collections.ArrayList
 
 @RequiresApi(Build.VERSION_CODES.O)
 class RecyclerMessageAdapter(
     val context: Context,
-    val chatRoomKey : String?,
+    private val chatRoomKey : String?,
     val opponentUid: String?
     ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var messages : ArrayList<Message> = arrayListOf()
     var messagesKeys : ArrayList<String> = arrayListOf()
-    val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
+    private val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
     val recyclerView = (context as ChatRoomActivity).recycler_talks
 
     init{
@@ -61,10 +66,8 @@ class RecyclerMessageAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
-
-        return if(messages[position].isDate){
-            2
-        }else{
+        return if(messages[position].date) 2
+        else{
             if (messages[position].senderUid == myUid) 1 else 0
         }
     }
@@ -75,6 +78,7 @@ class RecyclerMessageAdapter(
                 val view = LayoutInflater.from(context)
                     .inflate(R.layout.list_talk_item, parent, false)
                 MyMessageViewHolder(ListTalkItemBinding.bind(view))
+
 
             }0->{
                 val view = LayoutInflater.from(context)
@@ -92,7 +96,7 @@ class RecyclerMessageAdapter(
         if(messages[position].senderUid == myUid) {
             (holder as MyMessageViewHolder).bind(position)
         }else{
-            if(!messages[position].isDate)
+            if(!messages[position].date)
                 (holder as OtherMessageViewHolder).bind(position)
             else
                 (holder as DateDivider).bind(position)
@@ -104,21 +108,21 @@ class RecyclerMessageAdapter(
     }
 
     inner class DateDivider(itemView:DateDeviderItemBinding): RecyclerView.ViewHolder(itemView.root){
-        var txtDate = itemView.txtDate
+        private var txtDate = itemView.txtDate
 
         fun bind(position: Int){
             var date = messages[position].sent_date
-            txtDate.text = getDateText(date)
+            txtDate.text = getDateText(date.substring(0,8))
         }
 
-        fun getDateText(sentDate: String):String{
+        private fun getDateText(sentDate: String):String{
             var dateText = ""
 
             if(sentDate.isNotBlank()){
-                var format = "yyyy년 MM월 dd일 (E)"
+                var format = "yyyyMMdd"
                 var formatter = DateTimeFormatter.ofPattern(format)
-                var d = LocalDateTime.parse(sentDate, formatter)
-                dateText += d.toString()
+                var d = LocalDate.parse(sentDate, formatter)
+                dateText = "${d.year}년 ${d.monthValue}월 ${d.dayOfMonth}일 ${d.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.KOREAN)}"
             }
 
             return dateText
@@ -138,7 +142,7 @@ class RecyclerMessageAdapter(
             txtMessage.text = message.content
             txtDate.text = getDateText(sendDate)
 
-            if(message.confirmed.equals(true)){
+            if(message.confirmed){
                 txtIsShown.visibility = View.GONE
             }else
                 txtIsShown.visibility=View.VISIBLE
@@ -158,7 +162,7 @@ class RecyclerMessageAdapter(
             txtMessage.text = message.content
             txtDate.text = getDateText(sendDate)
 
-            if(message.confirmed.equals(true)){
+            if(message.confirmed){
                 txtIsShown.visibility = View.GONE
             }else
                 txtIsShown.visibility=View.VISIBLE

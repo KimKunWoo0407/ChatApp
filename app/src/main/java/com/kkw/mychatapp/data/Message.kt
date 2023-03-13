@@ -5,5 +5,5 @@ data class Message(
     val sent_date: String ="",
     val content: String="",
     val confirmed:Boolean = false,
-    val isDate: Boolean = false
+    val date: Boolean = false
 ):java.io.Serializable{}
