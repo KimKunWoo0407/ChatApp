@@ -16,8 +16,8 @@ class LoginActivity : AppCompatActivity() {
     lateinit var auth:FirebaseAuth
     lateinit var signUpBtn : Button
     lateinit var signInBtn : Button
-    lateinit var edit_email : EditText
-    lateinit var edit_pw: EditText
+    private lateinit var edit_email : EditText
+    private lateinit var edit_pw: EditText
 
     lateinit var binding: ActivityLoginBinding
     lateinit var preference: SharedPreferences
@@ -32,12 +32,12 @@ class LoginActivity : AppCompatActivity() {
         initalizeListener()
     }
 
-    fun initProperty(){
+    private fun initProperty(){
         auth = FirebaseAuth.getInstance()
         preference = getSharedPreferences("setting", MODE_PRIVATE)
     }
 
-    fun initializeView(){
+    private fun initializeView(){
         signInBtn = binding.btnSignIn
         signUpBtn = binding.btnSignup
         edit_email = binding.edtEmail
@@ -48,7 +48,7 @@ class LoginActivity : AppCompatActivity() {
 
     }
 
-    fun initalizeListener(){
+    private fun initalizeListener(){
         signInBtn.setOnClickListener(){
             signInWithEmailAndPassword()
         }
@@ -57,7 +57,7 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    fun signInWithEmailAndPassword(){
+    private fun signInWithEmailAndPassword(){
         if(edit_email.text.toString().isNullOrBlank()&&
                 edit_pw.text.toString().isNullOrBlank()){
             Log.d("로그인","비어있음")
@@ -76,7 +76,7 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    fun updateUI(user:FirebaseUser?){
+    private fun updateUI(user:FirebaseUser?){
         if(user!=null){
             try{
                 var preference = getSharedPreferences("setting", MODE_PRIVATE).edit()

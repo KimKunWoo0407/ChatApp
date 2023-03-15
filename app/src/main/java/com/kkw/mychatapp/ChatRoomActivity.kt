@@ -27,10 +27,10 @@ import java.util.TimeZone
 class ChatRoomActivity : AppCompatActivity() {
 
     lateinit var binding : ActivityChatRoomBinding
-    lateinit var btn_exit : ImageButton
-    lateinit var btn_submit : Button
-    lateinit var txt_title : TextView
-    lateinit var edit_message : EditText
+    private lateinit var btn_exit : ImageButton
+    private lateinit var btn_submit : Button
+    private lateinit var txt_title : TextView
+    private lateinit var edit_message : EditText
     lateinit var firebaseDatabase : DatabaseReference
     lateinit var recycler_talks : RecyclerView
     lateinit var chatRoom : ChatRoom
@@ -50,7 +50,7 @@ class ChatRoomActivity : AppCompatActivity() {
         setupChatRooms()
     }
 
-    fun initializeProperty(){
+    private fun initializeProperty(){
         myUid = FirebaseAuth.getInstance().currentUser?.uid!!
         firebaseDatabase = FirebaseDatabase.getInstance().reference!!
 
@@ -64,7 +64,7 @@ class ChatRoomActivity : AppCompatActivity() {
         chatRoomKey = intent.getStringExtra("ChatRoomKey")!!
     }
 
-    fun initializeView(){
+    private fun initializeView(){
         btn_exit = binding.imgbtnQuit
         edit_message = binding.edtMessage
         recycler_talks = binding.recyclerMessages
@@ -73,7 +73,7 @@ class ChatRoomActivity : AppCompatActivity() {
         txt_title.text = opponentUser!!.name ?: ""
     }
 
-    fun initializeListener(){
+    private fun initializeListener(){
         btn_exit.setOnClickListener(){
             startActivity(Intent(this@ChatRoomActivity, MainActivity::class.java))
         }
@@ -82,14 +82,14 @@ class ChatRoomActivity : AppCompatActivity() {
         }
     }
 
-    fun setupChatRooms(){
+    private fun setupChatRooms(){
         if(chatRoomKey.isNullOrBlank())
             setupChatRoomKey()
         else
             setupRecycler()
     }
 
-    fun saveIntoDB(message: Message){
+    private fun saveIntoDB(message: Message){
         FirebasePath.chatRoom
             .child(chatRoomKey).child("messages")
             .push().setValue(message).addOnSuccessListener {
@@ -130,7 +130,7 @@ class ChatRoomActivity : AppCompatActivity() {
         }
     }
 
-    fun setupChatRoomKey(){
+    private fun setupChatRoomKey(){
         FirebasePath.chatRoom.orderByChild("users/${opponentUser.uid}").equalTo(true)
             .addListenerForSingleValueEvent(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
