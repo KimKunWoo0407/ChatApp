@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.kkw.mychatapp.data.ChatRoom
+import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.Message
 import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.ActivityChatRoomBinding
@@ -89,7 +90,7 @@ class ChatRoomActivity : AppCompatActivity() {
     }
 
     fun saveIntoDB(message: Message){
-        FirebaseDatabase.getInstance().getReference("ChatRoom").child("chatRooms")
+        FirebasePath.chatRoom
             .child(chatRoomKey).child("messages")
             .push().setValue(message).addOnSuccessListener {
                 Log.i("putMessage", "성공")
@@ -99,7 +100,7 @@ class ChatRoomActivity : AppCompatActivity() {
             }
     }
 
-    fun putMessage(){
+    private fun putMessage(){
         try{
 
             //날짜 구분
@@ -115,7 +116,7 @@ class ChatRoomActivity : AppCompatActivity() {
             var dateMessage:Message
 
             if(dateAdd){
-                dateMessage = Message("0000", curDate, "", date = true)
+                dateMessage = Message("0000", curDate, "", confirmed = true, date = true)
                 saveIntoDB(dateMessage)
             }
 
@@ -130,8 +131,7 @@ class ChatRoomActivity : AppCompatActivity() {
     }
 
     fun setupChatRoomKey(){
-        FirebaseDatabase.getInstance().getReference("ChatRoom")
-            .child("chatRooms").orderByChild("users/${opponentUser.uid}").equalTo(true)
+        FirebasePath.chatRoom.orderByChild("users/${opponentUser.uid}").equalTo(true)
             .addListenerForSingleValueEvent(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
                     for(data in snapshot.children){

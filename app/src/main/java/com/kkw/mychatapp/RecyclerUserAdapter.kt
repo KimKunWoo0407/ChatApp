@@ -16,6 +16,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
 import com.kkw.mychatapp.data.ChatRoom
+import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.ListPersonItemBinding
 
@@ -35,7 +36,7 @@ class RecyclerUserAdapter (val context: Context):
     fun setupAllUserList(){
         val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
 
-        FirebaseDatabase.getInstance().getReference("User").child("users")
+        FirebasePath.user
             .addListenerForSingleValueEvent(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
                     users.clear()
@@ -75,6 +76,7 @@ class RecyclerUserAdapter (val context: Context):
         var txt_email = itemView.userEmail
     }
 
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.list_person_item, parent, false)
         return ViewHolder(ListPersonItemBinding.bind(view))
@@ -91,18 +93,21 @@ class RecyclerUserAdapter (val context: Context):
 
     fun addChatRoom(position: Int){
         val opponent = users[position]
-        var database = FirebaseDatabase.getInstance().getReference("ChatRoom")
+        //var database = FirebaseDatabase.getInstance().getReference("ChatRoom")
         var chatRoom = ChatRoom(
             mapOf(currentUser.uid!! to true, opponent.uid!! to true), null
         )
 
         //var myUid = FirebaseAuth.getInstance().uid
-        database.child("chatRooms")
+            //database.child("chatRooms")
+        FirebasePath.chatRoom
             .orderByChild("users/${opponent.uid}").equalTo(true)
             .addListenerForSingleValueEvent(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if(snapshot.value==null){
-                        database.child("chatRooms").push()
+                        //database.child("chatRooms")
+                        FirebasePath.chatRoom
+                            .push()
                             .setValue(chatRoom).addOnSuccessListener {
                                 goToChatRoom(chatRoom, opponent)
                             }

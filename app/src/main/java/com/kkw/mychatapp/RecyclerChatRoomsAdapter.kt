@@ -17,6 +17,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
 import com.kkw.mychatapp.data.ChatRoom
+import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.ListChatroomItemBinding
 import java.time.LocalDateTime
@@ -35,7 +36,7 @@ class RecyclerChatRoomsAdapter(val context: Context) : RecyclerView.Adapter<Recy
     }
 
     fun setupAllUserList(){
-        FirebaseDatabase.getInstance().getReference("ChatRoom").child("chatRooms")
+        FirebasePath.chatRoom
             .orderByChild("users/$myUid").equalTo(true)
             .addListenerForSingleValueEvent(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -53,7 +54,7 @@ class RecyclerChatRoomsAdapter(val context: Context) : RecyclerView.Adapter<Recy
             })
     }
 
-    fun setupLastMessageAndDate(holder: ViewHolder, position: Int){
+    private fun setupLastMessageAndDate(holder: ViewHolder, position: Int){
         try{
             var lastMessage = chatRooms[position].messages!!.values.sortedWith(compareBy { it.sent_date }).last()
             holder.txt_message.text = lastMessage.content
@@ -64,7 +65,7 @@ class RecyclerChatRoomsAdapter(val context: Context) : RecyclerView.Adapter<Recy
         }
     }
 
-    fun setUpMessageCount(holder: ViewHolder, position: Int){
+    private fun setUpMessageCount(holder: ViewHolder, position: Int){
         try{
             var unconfirmedCount = chatRooms[position].messages!!.filter {
                 !it.value.confirmed && it.value.senderUid != myUid
@@ -149,7 +150,7 @@ class RecyclerChatRoomsAdapter(val context: Context) : RecyclerView.Adapter<Recy
         val userIdList = chatRooms[position].users!!.keys
         var opponent = userIdList.first{ it != myUid }
 
-        FirebaseDatabase.getInstance().getReference("User").child("users").orderByChild("uid")
+        FirebasePath.user.orderByChild("uid")
             .equalTo(opponent)
             .addListenerForSingleValueEvent(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
