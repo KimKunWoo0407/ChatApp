@@ -23,6 +23,7 @@ class AddChatRoomActivity : AppCompatActivity() {
     lateinit var edit_opponent : EditText
     lateinit var firebaseDatabase : DatabaseReference
     lateinit var recycler_people : RecyclerView
+    lateinit var recyclerChatRoom: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,8 +33,6 @@ class AddChatRoomActivity : AppCompatActivity() {
         initializeView()
         initializeListener()
         setupRecycler()
-
-
     }
 
     fun initializeView(){
@@ -41,6 +40,7 @@ class AddChatRoomActivity : AppCompatActivity() {
         btn_exit = binding.imgBtnBack
         edit_opponent = binding.editOpponentName
         recycler_people = binding.recyclerPeople
+        recyclerChatRoom = binding.recyclerRooms
     }
 
     fun initializeListener(){
@@ -58,15 +58,25 @@ class AddChatRoomActivity : AppCompatActivity() {
 
             override fun afterTextChanged(s: Editable?) {
                 var adapter = recycler_people?.adapter as RecyclerUserAdapter
+
                 adapter.searchItem(s.toString())
+
+                var roomAdapter = recyclerChatRoom?.adapter as RecyclerChatRoomsAdapter
+//                roomAdapter.searchItem(adapter.searchItem(s.toString()))
+
             }
 
         })
-
     }
+
+
 
     fun setupRecycler(){
         recycler_people.layoutManager = LinearLayoutManager(this)
         recycler_people.adapter = RecyclerUserAdapter(this)
+
+        recyclerChatRoom.layoutManager = LinearLayoutManager(this)
+        recyclerChatRoom.adapter = RecyclerChatRoomsAdapter(this)
+
     }
 }

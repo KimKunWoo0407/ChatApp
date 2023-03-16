@@ -24,7 +24,6 @@ import com.kkw.mychatapp.databinding.ListPersonItemBinding
 class RecyclerUserAdapter (val context: Context):
     RecyclerView.Adapter<RecyclerUserAdapter.ViewHolder>(){
 
-
     var users : ArrayList<User> = arrayListOf()
     var allUsers : ArrayList<User> = arrayListOf()
     lateinit var currentUser: User
@@ -59,9 +58,10 @@ class RecyclerUserAdapter (val context: Context):
             })
     }
 
-    fun searchItem(target: String){
-        if(target.equals("")){
-            users = allUsers.clone() as ArrayList<User>
+    fun searchItem(target: String) {
+        if(target == ""){
+            //users = allUsers.clone() as ArrayList<User>
+            users.clear()
         }else{
             var matchedList = allUsers.filter{it.name!!.contains(target)}
             users.clear()
@@ -91,7 +91,7 @@ class RecyclerUserAdapter (val context: Context):
         }
     }
 
-    fun addChatRoom(position: Int){
+    private fun addChatRoom(position: Int){
         val opponent = users[position]
         //var database = FirebaseDatabase.getInstance().getReference("ChatRoom")
         var chatRoom = ChatRoom(
