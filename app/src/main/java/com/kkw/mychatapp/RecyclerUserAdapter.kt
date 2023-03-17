@@ -47,7 +47,7 @@ class RecyclerUserAdapter (val context: Context):
                         }
                         allUsers.add(item!!)
                     }
-                    users = allUsers.clone() as ArrayList<User>
+                    //users = allUsers.clone() as ArrayList<User>
                     notifyDataSetChanged()
                 }
 
@@ -58,16 +58,18 @@ class RecyclerUserAdapter (val context: Context):
             })
     }
 
-    fun searchItem(target: String) {
-        if(target == ""){
+    fun searchItem(target: String) : ArrayList<User> {
+        users.clear()
+        var matchedList:List<User> = listOf()
+
+        if(target != ""){
             //users = allUsers.clone() as ArrayList<User>
-            users.clear()
-        }else{
-            var matchedList = allUsers.filter{it.name!!.contains(target)}
-            users.clear()
+            matchedList = allUsers.filter{it.name!!.contains(target)}
             matchedList.forEach{users.add(it)}
         }
         notifyDataSetChanged()
+
+        return matchedList.toCollection(ArrayList())
     }
 
     inner class ViewHolder(itemView: ListPersonItemBinding) : RecyclerView.ViewHolder(itemView.root){

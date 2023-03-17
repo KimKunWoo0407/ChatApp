@@ -25,9 +25,11 @@ import java.time.format.DateTimeFormatter
 import java.util.TimeZone
 
 @RequiresApi(Build.VERSION_CODES.O)
-class RecyclerChatRoomsAdapter(val context: Context) : RecyclerView.Adapter<RecyclerChatRoomsAdapter.ViewHolder>() {
+class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = true) : RecyclerView.Adapter<RecyclerChatRoomsAdapter.ViewHolder>() {
+
 
     var chatRooms: ArrayList<ChatRoom> = arrayListOf()
+    var allChatRooms : ArrayList<ChatRoom> = arrayListOf()
     var chatRoomKeys: ArrayList<String> = arrayListOf()
     val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
 
@@ -42,9 +44,18 @@ class RecyclerChatRoomsAdapter(val context: Context) : RecyclerView.Adapter<Recy
                 override fun onDataChange(snapshot: DataSnapshot) {
                     chatRooms.clear()
                     for(data in snapshot.children){
-                        chatRooms.add(data.getValue<ChatRoom>()!!)
+                        var roomData = data.getValue<ChatRoom>()!!
+                        roomData.roomKey=data.key.toString()!!
+
+                        //allChatRooms.add(data.getValue<ChatRoom>()!!)
+                        allChatRooms.add(roomData)
+
                         chatRoomKeys.add(data.key!!)
                     }
+
+                    if(shouldShown)
+                        chatRooms = allChatRooms.clone() as ArrayList<ChatRoom>
+
                     notifyDataSetChanged()
                 }
                 override fun onCancelled(error: DatabaseError) {
@@ -52,6 +63,27 @@ class RecyclerChatRoomsAdapter(val context: Context) : RecyclerView.Adapter<Recy
                 }
 
             })
+    }
+
+    fun searchItem(target: ArrayList<User>){
+
+        chatRooms.clear()
+
+        if(target.isNullOrEmpty()){
+            Log.d("searchItem", "target null or Empty")
+        }else {
+            var result: ArrayList<ChatRoom> = arrayListOf()
+
+            target.forEach{
+                var uid = it.uid
+                var tmp = allChatRooms.filter { chatRoom -> chatRoom.users.contains(uid) }
+                result.addAll(tmp)
+            }
+            result.distinctBy { chatRoom->chatRoom.roomKey }.forEach { chatRooms.add(it) }
+        }
+
+        notifyDataSetChanged()
+
     }
 
     private fun setupLastMessageAndDate(holder: ViewHolder, position: Int){
