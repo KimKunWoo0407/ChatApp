@@ -160,7 +160,7 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
                                 goToChatRoom(chatRoom, opponent)
                             }
                     }else{
-                        context.startActivity(Intent(context, MainActivity::class.java))
+                        //context.startActivity(Intent(context, MainActivity::class.java))
                         goToChatRoom(chatRoom, opponent)
                     }
                 }
@@ -179,7 +179,7 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
         intent.putExtra("Opponent", opponentUid)
         intent.putExtra("ChatRoomKey", "")
         context.startActivity(intent)
-        (context as AppCompatActivity).finish()
+        //(context as AppCompatActivity).finish()
     }
 
     override fun getItemCount(): Int {

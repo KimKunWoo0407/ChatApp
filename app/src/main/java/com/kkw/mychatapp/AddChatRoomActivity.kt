@@ -47,7 +47,7 @@ class AddChatRoomActivity : AppCompatActivity() {
 
     fun initializeListener(){
         btn_exit.setOnClickListener(){
-            startActivity(Intent(this@AddChatRoomActivity, MainActivity::class.java))
+            finish()
         }
 
         edit_opponent.addTextChangedListener(object :TextWatcher{

@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
@@ -32,6 +33,8 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     var allChatRooms : ArrayList<ChatRoom> = arrayListOf()
     var chatRoomKeys: ArrayList<String> = arrayListOf()
     val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
+
+
 
     init{
         setupAllUserList()
@@ -171,6 +174,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
         var txt_chatCount = itemView.txtChatCount
         var txt_date = itemView.txtMessageDate
         var profile = itemView.roomProfileImage
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -178,9 +182,13 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
         return ViewHolder(ListChatroomItemBinding.bind(view))
     }
 
+
+
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val userIdList = chatRooms[position].users!!.keys
         var opponent = userIdList.first{ it != myUid }
+
+
 
         FirebasePath.user.orderByChild("uid")
             .equalTo(opponent)
@@ -203,11 +211,13 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
 
             try{
                 var intent = Intent(context, ChatRoomActivity::class.java)
-                intent.putExtra("ChatRoom", chatRooms.get(position))
+                intent.putExtra("ChatRoom", chatRooms[position])
                 intent.putExtra("Opponent", holder.opponentUser)
                 intent.putExtra("ChatRoomKey", chatRoomKeys[position])
                 context.startActivity(intent)
-                (context as AppCompatActivity).finish()
+
+
+                //(context as AppCompatActivity).finish()
             }catch(e: Exception){
                 e.printStackTrace()
             }

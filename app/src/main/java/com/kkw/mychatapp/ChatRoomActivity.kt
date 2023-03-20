@@ -80,13 +80,12 @@ class ChatRoomActivity : AppCompatActivity() {
 
     private fun initializeListener(){
         btn_exit.setOnClickListener(){
-            startActivity(Intent(this@ChatRoomActivity, MainActivity::class.java))
+            finish()
         }
         btn_submit.setOnClickListener(){
             putMessage()
         }
         addBtn.setOnClickListener(){
-            container.bringToFront()
             val transaction = supportFragmentManager.beginTransaction()
                 .add(R.id.container,AddOpponentFragment())
             transaction.commit()

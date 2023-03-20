@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         }
         btnAddchatRoom.setOnClickListener(){
             startActivity(Intent(this@MainActivity, AddChatRoomActivity::class.java))
-            finish()
+            //finish()
         }
     }
 

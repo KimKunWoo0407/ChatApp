@@ -60,7 +60,7 @@
         android:background="?android:attr/listDivider"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/recyclerPeopleToSelect" />
+        app:layout_constraintTop_toBottomOf="@+id/recyclerPeople" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerRooms"
