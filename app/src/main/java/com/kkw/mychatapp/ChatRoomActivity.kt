@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.annotation.RequiresApi
@@ -29,6 +30,7 @@ class ChatRoomActivity : AppCompatActivity() {
     lateinit var binding : ActivityChatRoomBinding
     private lateinit var btn_exit : ImageButton
     private lateinit var btn_submit : Button
+    private lateinit var addBtn : Button
     private lateinit var txt_title : TextView
     private lateinit var edit_message : EditText
     lateinit var firebaseDatabase : DatabaseReference
@@ -37,6 +39,7 @@ class ChatRoomActivity : AppCompatActivity() {
     lateinit var opponentUser : User
     lateinit var chatRoomKey : String
     lateinit var myUid : String
+    lateinit var container : FrameLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,8 +72,10 @@ class ChatRoomActivity : AppCompatActivity() {
         edit_message = binding.edtMessage
         recycler_talks = binding.recyclerMessages
         btn_submit = binding.btnSubmit
+        addBtn = binding.addOpponentBtn
         txt_title = binding.txtTitle
         txt_title.text = opponentUser!!.name ?: ""
+        container = binding.container
     }
 
     private fun initializeListener(){
@@ -79,6 +84,12 @@ class ChatRoomActivity : AppCompatActivity() {
         }
         btn_submit.setOnClickListener(){
             putMessage()
+        }
+        addBtn.setOnClickListener(){
+            container.bringToFront()
+            val transaction = supportFragmentManager.beginTransaction()
+                .add(R.id.container,AddOpponentFragment())
+            transaction.commit()
         }
     }
 

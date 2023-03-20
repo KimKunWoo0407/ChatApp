@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import androidx.annotation.RequiresApi
@@ -24,6 +25,7 @@ class AddChatRoomActivity : AppCompatActivity() {
     lateinit var firebaseDatabase : DatabaseReference
     lateinit var recycler_people : RecyclerView
     lateinit var recyclerChatRoom: RecyclerView
+    lateinit var addBtn: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

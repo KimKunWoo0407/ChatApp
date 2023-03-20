@@ -18,11 +18,16 @@ import com.google.firebase.database.ktx.getValue
 import com.kkw.mychatapp.data.ChatRoom
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.User
+import com.kkw.mychatapp.databinding.ListAddPersonCheckItemBinding
 import com.kkw.mychatapp.databinding.ListPersonItemBinding
 
+interface UserHolder{
+    fun bind(position: Int)
+}
+
 @RequiresApi(Build.VERSION_CODES.O)
-class RecyclerUserAdapter (val context: Context):
-    RecyclerView.Adapter<RecyclerUserAdapter.ViewHolder>(){
+class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
+    RecyclerView.Adapter<RecyclerView.ViewHolder>(){
 
     var users : ArrayList<User> = arrayListOf()
     var allUsers : ArrayList<User> = arrayListOf()
@@ -47,7 +52,8 @@ class RecyclerUserAdapter (val context: Context):
                         }
                         allUsers.add(item!!)
                     }
-                    //users = allUsers.clone() as ArrayList<User>
+                    if(isInRoom)
+                        users = allUsers.clone() as ArrayList<User>
                     notifyDataSetChanged()
                 }
 
@@ -72,25 +78,65 @@ class RecyclerUserAdapter (val context: Context):
         return matchedList.toCollection(ArrayList())
     }
 
-    inner class ViewHolder(itemView: ListPersonItemBinding) : RecyclerView.ViewHolder(itemView.root){
+    inner class ViewHolder(itemView: ListPersonItemBinding) : RecyclerView.ViewHolder(itemView.root), UserHolder{
         var background = itemView.userBackground
-        var txt_name = itemView.userName
-        var txt_email = itemView.userEmail
-    }
+        var txtName = itemView.userName
+        var txtEmail = itemView.userEmail
 
+        override fun bind(position: Int){
+            txtName.text = users[position].name
+            txtEmail.text = users[position].email
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(context).inflate(R.layout.list_person_item, parent, false)
-        return ViewHolder(ListPersonItemBinding.bind(view))
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.txt_name.text = users[position].name
-        holder.txt_email.text = users[position].email
-
-        holder.background.setOnClickListener(){
-            addChatRoom(position)
+            background.setOnClickListener(){
+                addChatRoom(position)
+            }
         }
+    }
+
+    inner class ToSelectViewHolder(itemView: ListAddPersonCheckItemBinding) : RecyclerView.ViewHolder(itemView.root),UserHolder{
+
+        var background = itemView.userBackground
+        var txtName = itemView.userName
+        var checkIcon = itemView.checker
+
+        var checked = false
+        var included = false
+
+        override fun bind(position: Int) {
+            txtName.text = users[position].name
+
+            background.setOnClickListener(){
+                checkIcon.isSelected = !checked
+                checked = !checked
+            }
+
+        }
+
+    }
+
+
+    override fun getItemViewType(position: Int): Int {
+        return if(isInRoom) 1
+        else 0
+    }
+
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val inflater = LayoutInflater.from(context)
+
+        return when(viewType){
+            1->{
+                val view = inflater.inflate(R.layout.list_add_person_check_item, parent, false)
+                ToSelectViewHolder(ListAddPersonCheckItemBinding.bind(view))
+            }else->{
+                val view = inflater.inflate(R.layout.list_person_item, parent, false)
+                ViewHolder(ListPersonItemBinding.bind(view))
+            }
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        (holder as UserHolder).bind(position)
     }
 
     private fun addChatRoom(position: Int){
@@ -139,4 +185,5 @@ class RecyclerUserAdapter (val context: Context):
     override fun getItemCount(): Int {
         return users.size
     }
+
 }
