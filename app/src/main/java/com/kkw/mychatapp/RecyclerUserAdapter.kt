@@ -5,14 +5,13 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
 import com.kkw.mychatapp.data.ChatRoom
@@ -31,13 +30,20 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
 
     var users : ArrayList<User> = arrayListOf()
     var allUsers : ArrayList<User> = arrayListOf()
+
     lateinit var currentUser: User
+
+    lateinit var listener:IItemClickListener
+
+    fun setOnItemClickListener(clickListener: IItemClickListener){
+        listener= clickListener
+    }
 
     init{
         setupAllUserList()
     }
 
-    fun setupAllUserList(){
+    private fun setupAllUserList(){
         val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
 
         FirebasePath.user
@@ -93,21 +99,33 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
         }
     }
 
-    inner class ToSelectViewHolder(itemView: ListAddPersonCheckItemBinding) : RecyclerView.ViewHolder(itemView.root),UserHolder{
+    inner class ToSelectViewHolder(itemView: ListAddPersonCheckItemBinding, included: Boolean = false) : RecyclerView.ViewHolder(itemView.root),UserHolder{
 
         var background = itemView.userBackground
         var txtName = itemView.userName
         var checkIcon = itemView.checker
 
         var checked = false
-        var included = false
+
+        var _included = included
+
+        lateinit var itemListener:IItemClickListener
 
         override fun bind(position: Int) {
             txtName.text = users[position].name
 
-            background.setOnClickListener(){
-                checkIcon.isSelected = !checked
-                checked = !checked
+            if(!_included){
+                itemListener=listener
+
+                background.setOnClickListener(){
+                    if(itemListener!=null){
+                        itemListener.onItemClick(this@ToSelectViewHolder,it, adapterPosition)
+                    }
+                }
+            }
+            else{
+                background.isClickable=false
+                checkIcon.visibility = View.GONE
             }
 
         }
@@ -127,7 +145,7 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
         return when(viewType){
             1->{
                 val view = inflater.inflate(R.layout.list_add_person_check_item, parent, false)
-                ToSelectViewHolder(ListAddPersonCheckItemBinding.bind(view))
+                ToSelectViewHolder(ListAddPersonCheckItemBinding.bind(view), )
             }else->{
                 val view = inflater.inflate(R.layout.list_person_item, parent, false)
                 ViewHolder(ListPersonItemBinding.bind(view))
@@ -138,6 +156,8 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         (holder as UserHolder).bind(position)
     }
+
+
 
     private fun addChatRoom(position: Int){
         val opponent = users[position]
@@ -160,7 +180,7 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
                                 goToChatRoom(chatRoom, opponent)
                             }
                     }else{
-                        //context.startActivity(Intent(context, MainActivity::class.java))
+                        // context.startActivity(Intent(context, MainActivity::class.java))
                         goToChatRoom(chatRoom, opponent)
                     }
                 }

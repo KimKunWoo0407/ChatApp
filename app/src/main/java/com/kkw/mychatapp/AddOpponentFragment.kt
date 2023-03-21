@@ -1,10 +1,10 @@
 package com.kkw.mychatapp
 
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -12,13 +12,12 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
-import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.LayoutManager
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.FragmentAddOpponentBinding
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -34,6 +33,8 @@ class AddOpponentFragment : Fragment() {
 
     lateinit var selectedUsers : RecyclerView
     lateinit var usersList : RecyclerView
+
+    var addedOpponenet = arrayListOf<User>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,7 +56,7 @@ class AddOpponentFragment : Fragment() {
 
 
     private fun initializeListener(){
-        btnExit.setOnClickListener(){
+        btnExit.setOnClickListener {
             var fragmentManager = activity?.supportFragmentManager
             fragmentManager?.beginTransaction()?.remove(this@AddOpponentFragment)?.commit()
             fragmentManager?.popBackStack()
@@ -78,11 +79,34 @@ class AddOpponentFragment : Fragment() {
             }
 
         })
+
+        confirmBtn.setOnClickListener{
+            
+        }
     }
 
     fun setUpRecycler(){
         usersList.layoutManager = LinearLayoutManager(context)
         usersList.adapter = context?.let { RecyclerUserAdapter(it, isInRoom = true) }
+
+        var uAdapter = usersList.adapter as RecyclerUserAdapter
+
+        uAdapter.setOnItemClickListener(object : IItemClickListener{
+            override fun onItemClick(holder: RecyclerView.ViewHolder, v: View, position: Int) {
+                var userHolder = holder as RecyclerUserAdapter.ToSelectViewHolder
+                var checked = userHolder.checked
+                if(!checked)
+                {
+                    addedOpponenet.add(uAdapter.users[position])
+                }else{
+                    var uid = uAdapter.users[position].uid
+                    addedOpponenet.removeIf{it.uid==uid}
+                }
+                userHolder.checked = !checked
+                userHolder.checkIcon.isSelected = checked
+
+            }
+        })
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
