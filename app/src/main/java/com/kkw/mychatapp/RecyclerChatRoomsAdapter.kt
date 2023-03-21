@@ -189,7 +189,6 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
         var opponent = userIdList.first{ it != myUid }
 
 
-
         FirebasePath.user.orderByChild("uid")
             .equalTo(opponent)
             .addListenerForSingleValueEvent(object : ValueEventListener{

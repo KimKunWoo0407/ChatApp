@@ -87,7 +87,7 @@ class ChatRoomActivity : AppCompatActivity() {
         }
         addBtn.setOnClickListener(){
             val transaction = supportFragmentManager.beginTransaction()
-                .add(R.id.container,AddOpponentFragment())
+                .add(R.id.container,AddOpponentFragment(chatRoomKey))
             transaction.commit()
         }
     }

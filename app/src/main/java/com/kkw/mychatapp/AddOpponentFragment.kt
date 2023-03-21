@@ -17,11 +17,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.FragmentAddOpponentBinding
 
 @RequiresApi(Build.VERSION_CODES.O)
-class AddOpponentFragment : Fragment() {
+class AddOpponentFragment(val chatRoomKey:String): Fragment() {
 
     private var _binding: FragmentAddOpponentBinding? = null
     private val binding get() = _binding!!
@@ -81,8 +82,16 @@ class AddOpponentFragment : Fragment() {
         })
 
         confirmBtn.setOnClickListener{
-            
+
         }
+    }
+
+    fun addOpponent(){
+
+        addedOpponenet
+
+        FirebasePath.chatRoom
+            .child(chatRoomKey)
     }
 
     fun setUpRecycler(){
@@ -103,7 +112,8 @@ class AddOpponentFragment : Fragment() {
                     addedOpponenet.removeIf{it.uid==uid}
                 }
                 userHolder.checked = !checked
-                userHolder.checkIcon.isSelected = checked
+                userHolder.checkIcon.isSelected = !checked
+
 
             }
         })
