@@ -191,7 +191,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
         }
     }
 
-    fun getLastMessageTimeString(lastTimeString: String):String{
+    private fun getLastMessageTimeString(lastTimeString: String):String{
         try {
             var currentTime = LocalDateTime.now().atZone(TimeZone.getDefault().toZoneId()) //현재 시각
             var dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")

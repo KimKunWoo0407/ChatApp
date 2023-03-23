@@ -38,7 +38,7 @@ interface MessageHolder{
 class RecyclerMessageAdapter(
     val context: Context,
     chatRoomKey : String?,
-    val opponentUid: ArrayList<User>?
+    val opponents: ArrayList<User>?
     ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var messages : ArrayList<Message> = arrayListOf()
@@ -46,8 +46,13 @@ class RecyclerMessageAdapter(
     private val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
     val recyclerView = (context as ChatRoomActivity).recycler_talks
     private var chatRoomPath : DatabaseReference = FirebasePath.chatRoom.child(chatRoomKey!!)
+    var userMap = mutableMapOf<String, User>()
 
     init{
+        opponents?.forEach{
+            userMap[it.uid!!] = it
+        }
+
         getMessages()
     }
 
@@ -157,10 +162,14 @@ class RecyclerMessageAdapter(
         var txtMessage = itemView.txtMessage
         var txtDate = itemView.txtDate
         var txtIsShown = itemView.txtIsShown
+        var sender = itemView.senderName
 
         override fun bind(position: Int){
             var message = messages[position]
             var sendDate = message.sent_date
+            var senderName = userMap[message.senderUid]?.name
+
+            sender.text = senderName
 
             txtMessage.text = message.content
             txtDate.text = getDateText(sendDate)
