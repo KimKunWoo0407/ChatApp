@@ -118,6 +118,83 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
         }
     }
 
+
+
+
+    inner class ViewHolder(itemView: ListChatroomItemBinding) : RecyclerView.ViewHolder(itemView.root){
+        var opponentUser = arrayListOf<User?>()
+        var chatRoomKey = ""
+        var background = itemView.background
+        var txt_name = itemView.txtName
+        var txt_message = itemView.txtMessage
+        var txt_chatCount = itemView.txtChatCount
+        var txt_date = itemView.txtMessageDate
+        var profile = itemView.roomProfileImage
+
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(context).inflate(R.layout.list_chatroom_item, parent, false)
+        return ViewHolder(ListChatroomItemBinding.bind(view))
+    }
+
+
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val roomKey = chatRoomKeys[position]
+        var userIdList = chatRooms[position].users!!.keys
+//        var opponent = userIdList.first{ it != myUid }
+        val opponent : MutableSet<String> = userIdList as MutableSet<String>
+        opponent.removeIf {it!=myUid}
+
+        holder.chatRoomKey = roomKey
+        var chatRoomName = ""
+
+        FirebasePath.user.orderByChild("uid")
+            .addListenerForSingleValueEvent(object : ValueEventListener{
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    for (data in snapshot.children){
+//                        holder.chatRoomKey=data.key.toString()!!
+                        var user = data.getValue<User>()!!
+                        if(opponent.contains(user.uid)){
+                            holder.opponentUser.add(user)
+                            chatRoomName+=user.name
+                            chatRoomName+=", "
+                        }
+
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.d("ChatRoomAdapter_bind", "error")
+                }
+
+            })
+
+        if(chatRoomName.isNotEmpty()){
+            holder.txt_name.text = chatRoomName.substring(0, chatRoomName.length-2)
+        }
+
+        holder.background.setOnClickListener(){
+            try{
+                var intent = Intent(context, ChatRoomActivity::class.java)
+                intent.putExtra("ChatRoom", chatRooms[position])
+                intent.putExtra("Opponent", holder.opponentUser!!)
+                intent.putExtra("ChatRoomKey", chatRoomKeys[position])
+                intent.putExtra("Name", chatRoomName)
+                context.startActivity(intent)
+                //(context as AppCompatActivity).finish()
+            }catch(e: Exception){
+                e.printStackTrace()
+            }
+        }
+
+        if(chatRooms[position].messages!!.isNotEmpty()){
+            setupLastMessageAndDate(holder, position)
+            setUpMessageCount(holder, position)
+        }
+    }
+
     fun getLastMessageTimeString(lastTimeString: String):String{
         try {
             var currentTime = LocalDateTime.now().atZone(TimeZone.getDefault().toZoneId()) //현재 시각
@@ -161,70 +238,6 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
         } catch (e: Exception) {
             e.printStackTrace()
             return ""
-        }
-    }
-
-
-    inner class ViewHolder(itemView: ListChatroomItemBinding) : RecyclerView.ViewHolder(itemView.root){
-        var opponentUser = User("","")
-        var chatRoomKey = ""
-        var background = itemView.background
-        var txt_name = itemView.txtName
-        var txt_message = itemView.txtMessage
-        var txt_chatCount = itemView.txtChatCount
-        var txt_date = itemView.txtMessageDate
-        var profile = itemView.roomProfileImage
-
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(context).inflate(R.layout.list_chatroom_item, parent, false)
-        return ViewHolder(ListChatroomItemBinding.bind(view))
-    }
-
-
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val userIdList = chatRooms[position].users!!.keys
-        var opponent = userIdList.first{ it != myUid }
-
-
-        FirebasePath.user.orderByChild("uid")
-            .equalTo(opponent)
-            .addListenerForSingleValueEvent(object : ValueEventListener{
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    for (data in snapshot.children){
-                        holder.chatRoomKey=data.key.toString()!!
-                        holder.opponentUser=data.getValue<User>()!!
-                        holder.txt_name.text = holder.opponentUser.name.toString()
-                    }
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    Log.d("ChatRoomAdapter_bind", "error")
-                }
-
-            })
-
-        holder.background.setOnClickListener(){
-
-            try{
-                var intent = Intent(context, ChatRoomActivity::class.java)
-                intent.putExtra("ChatRoom", chatRooms[position])
-                intent.putExtra("Opponent", holder.opponentUser)
-                intent.putExtra("ChatRoomKey", chatRoomKeys[position])
-                context.startActivity(intent)
-
-
-                //(context as AppCompatActivity).finish()
-            }catch(e: Exception){
-                e.printStackTrace()
-            }
-        }
-
-        if(chatRooms[position].messages!!.isNotEmpty()){
-            setupLastMessageAndDate(holder, position)
-            setUpMessageCount(holder, position)
         }
     }
 

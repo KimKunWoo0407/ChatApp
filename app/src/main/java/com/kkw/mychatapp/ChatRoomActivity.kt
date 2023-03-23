@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Parcelable
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
@@ -20,6 +21,7 @@ import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.Message
 import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.ActivityChatRoomBinding
+import java.io.Serializable
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.TimeZone
@@ -36,9 +38,10 @@ class ChatRoomActivity : AppCompatActivity() {
     lateinit var firebaseDatabase : DatabaseReference
     lateinit var recycler_talks : RecyclerView
     lateinit var chatRoom : ChatRoom
-    lateinit var opponentUser : User
+    var opponentUser = arrayListOf<User>()
     lateinit var chatRoomKey : String
     lateinit var myUid : String
+    lateinit var roomTitle : String
     lateinit var container : FrameLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,14 +60,18 @@ class ChatRoomActivity : AppCompatActivity() {
         myUid = FirebaseAuth.getInstance().currentUser?.uid!!
         firebaseDatabase = FirebaseDatabase.getInstance().reference!!
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            chatRoom = intent.getSerializableExtra("ChatRoom", ChatRoom::class.java)!!
-            opponentUser = intent.getSerializableExtra("Opponent", User::class.java)!!
+        chatRoom = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getSerializableExtra("ChatRoom", ChatRoom::class.java)!!
+
+
         }else{
-            chatRoom = (intent.getSerializableExtra("ChatRoom")) as ChatRoom
-            opponentUser = (intent.getSerializableExtra("Opponent")) as User
+            (intent.getSerializableExtra("ChatRoom")) as ChatRoom
         }
+
+        opponentUser = intent.getSerializableExtra("Opponent") as ArrayList<User>
+       //opponentUser = ArrayList(intent.getSerializableExtra("Opponent", List<User>::class.java)!!)
         chatRoomKey = intent.getStringExtra("ChatRoomKey")!!
+        roomTitle = intent.getStringExtra("Name")!!
     }
 
     private fun initializeView(){
@@ -74,7 +81,8 @@ class ChatRoomActivity : AppCompatActivity() {
         btn_submit = binding.btnSubmit
         addBtn = binding.addOpponentBtn
         txt_title = binding.txtTitle
-        txt_title.text = opponentUser!!.name ?: ""
+//        txt_title.text = opponentUser!!.name ?: ""
+        txt_title.text = roomTitle
         container = binding.container
     }
 
@@ -140,8 +148,9 @@ class ChatRoomActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupChatRoomKey(){
-        FirebasePath.chatRoom.orderByChild("users/${opponentUser.uid}").equalTo(true)
+    private fun setupChatRoomKey(){ //1대1 방 처음 만들어 졌을 때
+//        FirebasePath.chatRoom.orderByChild("users/${opponentUser.uid}").equalTo(true)
+        FirebasePath.chatRoom.orderByChild("users/${opponentUser[0].uid}").equalTo(true)
             .addListenerForSingleValueEvent(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
                     for(data in snapshot.children){
@@ -150,7 +159,6 @@ class ChatRoomActivity : AppCompatActivity() {
                         break
                     }
                 }
-
                 override fun onCancelled(error: DatabaseError) {
                     Log.i("setupKey", "에러")
                 }
@@ -160,7 +168,7 @@ class ChatRoomActivity : AppCompatActivity() {
 
     fun setupRecycler(){
         recycler_talks.layoutManager = LinearLayoutManager(this)
-        recycler_talks.adapter = RecyclerMessageAdapter(this, chatRoomKey, opponentUser.uid)
+        recycler_talks.adapter = RecyclerMessageAdapter(this, chatRoomKey, opponentUser)
     }
 
     private fun getDateTimeString() : String{
@@ -176,3 +184,9 @@ class ChatRoomActivity : AppCompatActivity() {
     }
 
 }
+
+
+
+
+
+

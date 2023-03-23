@@ -1,16 +1,19 @@
 package com.kkw.mychatapp
 
 import android.content.Intent
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import androidx.annotation.RequiresApi
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.ActivitySignUpBinding
 
+@RequiresApi(Build.VERSION_CODES.O)
 class SignUpActivity : AppCompatActivity() {
 
     lateinit var auth : FirebaseAuth
@@ -46,6 +49,7 @@ class SignUpActivity : AppCompatActivity() {
         }
     }
 
+
     fun signUp(){
         var email = edit_email.text.toString()
         var pw = edit_pw.text.toString()
@@ -69,6 +73,7 @@ class SignUpActivity : AppCompatActivity() {
                         startActivity(Intent(this@SignUpActivity, MainActivity::class.java))
 
                     }catch (e: Exception){
+                        Log.e("df", "실패")
                         e.printStackTrace()
                     }
                 }

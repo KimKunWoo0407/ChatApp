@@ -160,16 +160,17 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
 
 
     private fun addChatRoom(position: Int){
-        val opponent = users[position]
+        val opponent = arrayListOf<User>()
+        opponent.add(users[position])
         //var database = FirebaseDatabase.getInstance().getReference("ChatRoom")
         var chatRoom = ChatRoom(
-            mapOf(currentUser.uid!! to true, opponent.uid!! to true), null
+            mapOf(currentUser.uid!! to true, opponent[0].uid!! to true), null
         )
 
         //var myUid = FirebaseAuth.getInstance().uid
             //database.child("chatRooms")
         FirebasePath.chatRoom
-            .orderByChild("users/${opponent.uid}").equalTo(true)
+            .orderByChild("users/${opponent[0].uid}").equalTo(true)
             .addListenerForSingleValueEvent(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if(snapshot.value==null){
@@ -181,7 +182,7 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
                             }
                     }else{
                         // context.startActivity(Intent(context, MainActivity::class.java))
-                        goToChatRoom(chatRoom, opponent)
+                        goToChatRoom(chatRoom, opponent, snapshot.key!!)
                     }
                 }
 
@@ -193,11 +194,11 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
     }
 
 
-    fun goToChatRoom(chatRoom: ChatRoom, opponentUid: User){
+    fun goToChatRoom(chatRoom: ChatRoom, opponent: ArrayList<User>, roomKey:String=""){
         var intent = Intent(context, ChatRoomActivity::class.java)
         intent.putExtra("ChatRoom", chatRoom)
-        intent.putExtra("Opponent", opponentUid)
-        intent.putExtra("ChatRoomKey", "")
+        intent.putExtra("Opponent", opponent)
+        intent.putExtra("ChatRoomKey", roomKey)
         context.startActivity(intent)
         //(context as AppCompatActivity).finish()
     }

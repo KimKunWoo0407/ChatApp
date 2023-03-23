@@ -56,11 +56,15 @@ class AddOpponentFragment(val chatRoomKey:String): Fragment() {
     }
 
 
+    fun fragmentFinish(){
+        var fragmentManager = activity?.supportFragmentManager
+        fragmentManager?.beginTransaction()?.remove(this@AddOpponentFragment)?.commit()
+        fragmentManager?.popBackStack()
+    }
+
     private fun initializeListener(){
         btnExit.setOnClickListener {
-            var fragmentManager = activity?.supportFragmentManager
-            fragmentManager?.beginTransaction()?.remove(this@AddOpponentFragment)?.commit()
-            fragmentManager?.popBackStack()
+            fragmentFinish()
         }
 
         editOpponent.addTextChangedListener(object : TextWatcher {
@@ -82,16 +86,23 @@ class AddOpponentFragment(val chatRoomKey:String): Fragment() {
         })
 
         confirmBtn.setOnClickListener{
-
+            addOpponent()
         }
     }
 
     fun addOpponent(){
+        addedOpponenet.forEach{
+            FirebasePath.chatRoom
+                .child(chatRoomKey).child("users")
+                .updateChildren(hashMapOf<String, Any>(it.uid!! to true))
+                .addOnSuccessListener {
+                    Log.d("addOpponent", "성공")
+                    fragmentFinish()
+                }.addOnCanceledListener {
+                    Log.i("putMessage", "실패")
+                }
+        }
 
-        addedOpponenet
-
-        FirebasePath.chatRoom
-            .child(chatRoomKey)
     }
 
     fun setUpRecycler(){

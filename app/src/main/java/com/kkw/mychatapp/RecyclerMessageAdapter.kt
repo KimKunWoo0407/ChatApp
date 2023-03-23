@@ -17,6 +17,7 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.Message
+import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.DateDeviderItemBinding
 import com.kkw.mychatapp.databinding.ListTalkItemBinding
 import com.kkw.mychatapp.databinding.ListTalkItemOtherBinding
@@ -36,8 +37,8 @@ interface MessageHolder{
 @RequiresApi(Build.VERSION_CODES.O)
 class RecyclerMessageAdapter(
     val context: Context,
-    private val chatRoomKey : String?,
-    val opponentUid: String?
+    chatRoomKey : String?,
+    val opponentUid: ArrayList<User>?
     ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var messages : ArrayList<Message> = arrayListOf()
