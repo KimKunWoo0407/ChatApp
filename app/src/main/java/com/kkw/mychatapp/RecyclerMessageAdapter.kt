@@ -150,11 +150,32 @@ class RecyclerMessageAdapter(
             txtMessage.text = message.content
             txtDate.text = getDateText(sendDate)
 
-            if(message.confirmed){
-                txtIsShown.visibility = View.GONE
-            }else
-                txtIsShown.visibility=View.VISIBLE
+
+            numberingCallback(countUnconfirmed(message))
+
+
+//            if(message.confirmed){
+//                txtIsShown.visibility = View.GONE
+//            }else
+//                txtIsShown.visibility=View.VISIBLE
         }
+
+        fun countUnconfirmed(message : Message) : Int{
+            var unconfirmedNum = 0
+            message.unconfirmedOpponent.forEach{
+                if(it.value) unconfirmedNum++
+            }
+            return unconfirmedNum
+        }
+
+        fun numberingCallback(unconfirmedNum: Int){
+            if(unconfirmedNum>0){
+                txtIsShown.text = unconfirmedNum.toString()
+            }else{
+                txtIsShown.visibility = View.GONE
+            }
+        }
+
     }
 
     inner class OtherMessageViewHolder(itemView: ListTalkItemOtherBinding):RecyclerView.ViewHolder(itemView.root), MessageHolder{
@@ -167,6 +188,7 @@ class RecyclerMessageAdapter(
         override fun bind(position: Int){
             var message = messages[position]
             var sendDate = message.sent_date
+
             var senderName = userMap[message.senderUid]?.name
 
             sender.text = senderName
@@ -174,12 +196,31 @@ class RecyclerMessageAdapter(
             txtMessage.text = message.content
             txtDate.text = getDateText(sendDate)
 
-            if(message.confirmed){
-                txtIsShown.visibility = View.GONE
-            }else
-                txtIsShown.visibility=View.VISIBLE
+            numberingCallback(countUnconfirmed(message))
+
+//            if(message.confirmed){
+//                txtIsShown.visibility = View.GONE
+//            }else
+//                txtIsShown.visibility=View.VISIBLE
 
             setShown(position)
+        }
+
+
+        fun countUnconfirmed(message : Message) : Int{
+            var unconfirmedNum = 0
+            message.unconfirmedOpponent.forEach{
+                if(it.value) unconfirmedNum++
+            }
+            return unconfirmedNum
+        }
+
+        fun numberingCallback(unconfirmedNum: Int){
+            if(unconfirmedNum>0){
+                txtIsShown.text = unconfirmedNum.toString()
+            }else{
+                txtIsShown.visibility = View.GONE
+            }
         }
     }
 
@@ -207,9 +248,12 @@ class RecyclerMessageAdapter(
 
     fun setShown(position: Int){
         chatRoomPath.child("messages")
-            .child(messagesKeys[position]).child("confirmed").setValue(true)
+            .child(messagesKeys[position])
+//            .child("confirmed").setValue(true)
+            .child("unconfirmedOpponent")
+            .updateChildren(hashMapOf<String, Any>(myUid to false))
             .addOnSuccessListener {
-                Log.i("checkShown", "성공")
+//                Log.i("checkShown", "성공")
             }
     }
 }

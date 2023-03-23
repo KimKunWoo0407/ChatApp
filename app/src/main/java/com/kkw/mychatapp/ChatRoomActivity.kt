@@ -138,7 +138,10 @@ class ChatRoomActivity : AppCompatActivity() {
                 saveIntoDB(dateMessage)
             }
 
-            var message = Message(myUid, curDate, edit_message.text.toString())
+            var oppMap : HashMap<String, Boolean>  = hashMapOf()
+            opponentUser.forEach { oppMap[it.uid!!] = true }
+
+            var message = Message(myUid, curDate, edit_message.text.toString(), unconfirmedOpponent = oppMap)
             Log.i("ChatRoomKey", chatRoomKey)
             saveIntoDB(message)
 
