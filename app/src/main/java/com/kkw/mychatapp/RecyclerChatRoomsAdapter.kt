@@ -34,8 +34,6 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     var chatRoomKeys: ArrayList<String> = arrayListOf()
     val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
 
-
-
     init{
         setupAllUserList()
     }
@@ -144,8 +142,8 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
         val roomKey = chatRoomKeys[position]
         var userIdList = chatRooms[position].users!!.keys
 //        var opponent = userIdList.first{ it != myUid }
-        val opponent : MutableSet<String> = userIdList as MutableSet<String>
-        opponent.removeIf {it!=myUid}
+        val opponent = userIdList as MutableSet<String>
+        opponent.removeIf {it==myUid}
 
         holder.chatRoomKey = roomKey
         var chatRoomName = ""
@@ -161,7 +159,9 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
                             chatRoomName+=user.name
                             chatRoomName+=", "
                         }
-
+                    }
+                    if(chatRoomName.isNotEmpty()){
+                        holder.txt_name.text = chatRoomName.substring(0, chatRoomName.length-3)
                     }
                 }
 
@@ -170,10 +170,6 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
                 }
 
             })
-
-        if(chatRoomName.isNotEmpty()){
-            holder.txt_name.text = chatRoomName.substring(0, chatRoomName.length-2)
-        }
 
         holder.background.setOnClickListener(){
             try{
