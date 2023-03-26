@@ -95,9 +95,13 @@ class ChatRoomActivity : AppCompatActivity() {
         }
         addBtn.setOnClickListener(){
             val transaction = supportFragmentManager.beginTransaction()
-                .add(R.id.container,AddOpponentFragment(chatRoomKey))
+                .add(R.id.container,AddOpponentFragment(chatRoomKey, opponentUser))
             transaction.commit()
         }
+    }
+
+    fun updateOpponents(addedUser:ArrayList<User>) {
+        opponentUser.addAll(addedUser)
     }
 
     private fun setupChatRooms(){

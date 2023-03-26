@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
+import androidx.fragment.app.findFragment
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -25,7 +26,7 @@ interface UserHolder{
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
+class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
     RecyclerView.Adapter<RecyclerView.ViewHolder>(){
 
     var users : ArrayList<User> = arrayListOf()
@@ -58,7 +59,7 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
                         }
                         allUsers.add(item!!)
                     }
-                    if(isInRoom)
+                    if(!roomKey.isNullOrEmpty())
                         users = allUsers.clone() as ArrayList<User>
                     notifyDataSetChanged()
                 }
@@ -99,7 +100,7 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
         }
     }
 
-    inner class ToSelectViewHolder(itemView: ListAddPersonCheckItemBinding, included: Boolean = false) : RecyclerView.ViewHolder(itemView.root),UserHolder{
+    inner class ToSelectViewHolder(itemView: ListAddPersonCheckItemBinding) : RecyclerView.ViewHolder(itemView.root),UserHolder{
 
         var background = itemView.userBackground
         var txtName = itemView.userName
@@ -107,12 +108,19 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
 
         var checked = false
 
-        var _included = included
+        var _included = false
 
         lateinit var itemListener:IItemClickListener
 
+        private fun includedCheck(position: Int) : Boolean{
+            return ((context as ChatRoomActivity).supportFragmentManager.findFragmentById(R.id.container) as AddOpponentFragment)
+                .curOpponents.contains(users[position])
+        }
+
         override fun bind(position: Int) {
             txtName.text = users[position].name
+
+            _included = includedCheck(position)
 
             if(!_included){
                 itemListener=listener
@@ -132,10 +140,18 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
 
     }
 
+//    fun isIncluded(position: Int):Boolean{
+//        var result = true
+//
+//        if(users[position])
+//
+//        return result
+//    }
+
 
     override fun getItemViewType(position: Int): Int {
-        return if(isInRoom) 1
-        else 0
+        return if(roomKey.isNullOrEmpty()) 0
+        else 1
     }
 
 
@@ -145,7 +161,7 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
         return when(viewType){
             1->{
                 val view = inflater.inflate(R.layout.list_add_person_check_item, parent, false)
-                ToSelectViewHolder(ListAddPersonCheckItemBinding.bind(view), )
+                ToSelectViewHolder(ListAddPersonCheckItemBinding.bind(view))
             }else->{
                 val view = inflater.inflate(R.layout.list_person_item, parent, false)
                 ViewHolder(ListPersonItemBinding.bind(view))
@@ -156,8 +172,6 @@ class RecyclerUserAdapter (val context: Context, val isInRoom: Boolean = false):
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         (holder as UserHolder).bind(position)
     }
-
-
 
     private fun addChatRoom(position: Int){
         val opponent = arrayListOf<User>()

@@ -15,14 +15,14 @@ import android.widget.ImageButton
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
+import com.google.firebase.database.ktx.getValue
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.FragmentAddOpponentBinding
 
 @RequiresApi(Build.VERSION_CODES.O)
-class AddOpponentFragment(val chatRoomKey:String): Fragment() {
+class AddOpponentFragment(val chatRoomKey:String, val curOpponents: ArrayList<User>): Fragment() {
 
     private var _binding: FragmentAddOpponentBinding? = null
     private val binding get() = _binding!!
@@ -90,24 +90,26 @@ class AddOpponentFragment(val chatRoomKey:String): Fragment() {
         }
     }
 
-    fun addOpponent(){
+    private fun addOpponent(){
         addedOpponenet.forEach{
             FirebasePath.chatRoom
                 .child(chatRoomKey).child("users")
                 .updateChildren(hashMapOf<String, Any>(it.uid!! to true))
                 .addOnSuccessListener {
                     Log.d("addOpponent", "성공")
-                    fragmentFinish()
                 }.addOnCanceledListener {
                     Log.i("putMessage", "실패")
                 }
         }
 
+        (activity as ChatRoomActivity).updateOpponents(addedOpponenet)
+        fragmentFinish()
     }
+
 
     fun setUpRecycler(){
         usersList.layoutManager = LinearLayoutManager(context)
-        usersList.adapter = context?.let { RecyclerUserAdapter(it, isInRoom = true) }
+        usersList.adapter = context?.let { RecyclerUserAdapter(it, roomKey = chatRoomKey) }
 
         var uAdapter = usersList.adapter as RecyclerUserAdapter
 
