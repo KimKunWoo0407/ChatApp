@@ -38,7 +38,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
         setupAllUserList()
     }
 
-    fun setupAllUserList(){
+    private fun setupAllUserList(){
         FirebasePath.chatRoom
             .orderByChild("users/$myUid").equalTo(true)
             .addListenerForSingleValueEvent(object : ValueEventListener{
@@ -101,14 +101,18 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     private fun setUpMessageCount(holder: ViewHolder, position: Int){
         try{
             var unconfirmedCount = chatRooms[position].messages!!.filter {
-                !it.value.confirmed && it.value.senderUid != myUid
+                it.value.unconfirmedOpponent.containsKey(myUid)&&it.value.unconfirmedOpponent[myUid] == true
             }.size
+
+//            var unconfirmedCount = chatRooms[position].messages!!.filter {
+//                !it.value.confirmed && it.value.senderUid != myUid
+//            }.size
 
             if(unconfirmedCount>0){
                 holder.txt_chatCount.visibility = View.VISIBLE
                 holder.txt_chatCount.text = unconfirmedCount.toString()
             }else{
-                holder.txt_chatCount.visibility=View.GONE
+                holder.txt_chatCount.visibility=View.INVISIBLE
             }
 
         }catch (e:Exception){

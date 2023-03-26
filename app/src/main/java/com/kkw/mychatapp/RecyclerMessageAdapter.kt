@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
@@ -38,7 +39,7 @@ interface MessageHolder{
 class RecyclerMessageAdapter(
     val context: Context,
     chatRoomKey : String?,
-    val opponents: ArrayList<User>?
+    private val opponents: ArrayList<User>?
     ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var messages : ArrayList<Message> = arrayListOf()
@@ -137,6 +138,22 @@ class RecyclerMessageAdapter(
         }
     }
 
+    fun countUnconfirmed(message : Message) : Int{
+        var unconfirmedNum = 0
+        message.unconfirmedOpponent.forEach{
+            if(it.value) unconfirmedNum++
+        }
+        return unconfirmedNum
+    }
+
+    fun numberingCallback(unconfirmedNum: Int, txtIsShown: TextView){
+        if(unconfirmedNum>0){
+            txtIsShown.text = unconfirmedNum.toString()
+        }else{
+            txtIsShown.visibility = View.GONE
+        }
+    }
+
     inner class MyMessageViewHolder(itemView:ListTalkItemBinding): RecyclerView.ViewHolder(itemView.root), MessageHolder{
         var background = itemView.background
         var txtMessage = itemView.txtMessage
@@ -151,7 +168,7 @@ class RecyclerMessageAdapter(
             txtDate.text = getDateText(sendDate)
 
 
-            numberingCallback(countUnconfirmed(message))
+            numberingCallback(countUnconfirmed(message), txtIsShown = txtIsShown)
 
 
 //            if(message.confirmed){
@@ -159,23 +176,6 @@ class RecyclerMessageAdapter(
 //            }else
 //                txtIsShown.visibility=View.VISIBLE
         }
-
-        fun countUnconfirmed(message : Message) : Int{
-            var unconfirmedNum = 0
-            message.unconfirmedOpponent.forEach{
-                if(it.value) unconfirmedNum++
-            }
-            return unconfirmedNum
-        }
-
-        fun numberingCallback(unconfirmedNum: Int){
-            if(unconfirmedNum>0){
-                txtIsShown.text = unconfirmedNum.toString()
-            }else{
-                txtIsShown.visibility = View.GONE
-            }
-        }
-
     }
 
     inner class OtherMessageViewHolder(itemView: ListTalkItemOtherBinding):RecyclerView.ViewHolder(itemView.root), MessageHolder{
@@ -196,7 +196,8 @@ class RecyclerMessageAdapter(
             txtMessage.text = message.content
             txtDate.text = getDateText(sendDate)
 
-            numberingCallback(countUnconfirmed(message))
+            
+            numberingCallback(countUnconfirmed(message), txtIsShown=txtIsShown)
 
 //            if(message.confirmed){
 //                txtIsShown.visibility = View.GONE
@@ -206,22 +207,6 @@ class RecyclerMessageAdapter(
             setShown(position)
         }
 
-
-        fun countUnconfirmed(message : Message) : Int{
-            var unconfirmedNum = 0
-            message.unconfirmedOpponent.forEach{
-                if(it.value) unconfirmedNum++
-            }
-            return unconfirmedNum
-        }
-
-        fun numberingCallback(unconfirmedNum: Int){
-            if(unconfirmedNum>0){
-                txtIsShown.text = unconfirmedNum.toString()
-            }else{
-                txtIsShown.visibility = View.GONE
-            }
-        }
     }
 
     fun getDateText(sendDate: String): String {    //메시지 전송 시각 생성

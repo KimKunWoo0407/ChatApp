@@ -35,6 +35,11 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    override fun onResume() {
+        super.onResume()
+        setupRecycler()
+    }
+
     fun initializeView(){
         try{
             firebaseDatabase = FirebaseDatabase.getInstance().getReference("ChatRoom")!!
