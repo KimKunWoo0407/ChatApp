@@ -102,6 +102,10 @@ class ChatRoomActivity : AppCompatActivity() {
 
     fun updateOpponents(addedUser:ArrayList<User>) {
         opponentUser.addAll(addedUser)
+        addedUser.forEach{
+            roomTitle += (it.name + ", ")
+        }
+        txt_title.text = roomTitle.substring(0, roomTitle.length-3)
     }
 
     private fun setupChatRooms(){
@@ -157,7 +161,9 @@ class ChatRoomActivity : AppCompatActivity() {
 
     private fun setupChatRoomKey(){ //1대1 방 처음 만들어 졌을 때
 //        FirebasePath.chatRoom.orderByChild("users/${opponentUser.uid}").equalTo(true)
-        FirebasePath.chatRoom.orderByChild("users/${opponentUser[0].uid}").equalTo(true)
+        FirebasePath.chatRoom
+            //.orderByChild("users/${opponentUser[0].uid}").equalTo(true)
+            .orderByChild("singleRoom").equalTo(opponentUser[0].uid)
             .addListenerForSingleValueEvent(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
                     for(data in snapshot.children){

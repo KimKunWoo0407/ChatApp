@@ -95,6 +95,8 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
             txtEmail.text = users[position].email
 
             background.setOnClickListener(){
+
+                //goToProfile(users[position].uid!!)
                 addChatRoom(position)
             }
         }
@@ -140,14 +142,6 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
 
     }
 
-//    fun isIncluded(position: Int):Boolean{
-//        var result = true
-//
-//        if(users[position])
-//
-//        return result
-//    }
-
 
     override fun getItemViewType(position: Int): Int {
         return if(roomKey.isNullOrEmpty()) 0
@@ -173,18 +167,19 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
         (holder as UserHolder).bind(position)
     }
 
-    private fun addChatRoom(position: Int){
+    private fun addChatRoom(position: Int){ //1대1 채팅방 만들기
         val opponent = arrayListOf<User>()
         opponent.add(users[position])
         //var database = FirebaseDatabase.getInstance().getReference("ChatRoom")
         var chatRoom = ChatRoom(
-            mapOf(currentUser.uid!! to true, opponent[0].uid!! to true), null
+            mapOf(currentUser.uid!! to true, opponent[0].uid!! to true), null, singleRoom = opponent[0].uid!!
         )
 
         //var myUid = FirebaseAuth.getInstance().uid
             //database.child("chatRooms")
         FirebasePath.chatRoom
-            .orderByChild("users/${opponent[0].uid}").equalTo(true)
+            //.orderByChild("users/${opponent[0].uid}").equalTo(true)
+            .orderByChild("singleRoom").equalTo(opponent[0].uid)
             .addListenerForSingleValueEvent(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if(snapshot.value==null){
@@ -196,6 +191,7 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
                             }
                     }else{
                         // context.startActivity(Intent(context, MainActivity::class.java))
+                        Log.d("userAdapter", snapshot.key!!)
                         goToChatRoom(chatRoom, opponent, snapshot.key!!)
                     }
                 }
@@ -207,12 +203,18 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
             })
     }
 
+    fun goToProfile(opponentUid : String){
+       var intent = Intent(context, UserProfile::class.java)
+       intent.putExtra("uid", opponentUid)
+       context.startActivity(intent)
+    }
 
     fun goToChatRoom(chatRoom: ChatRoom, opponent: ArrayList<User>, roomKey:String=""){
         var intent = Intent(context, ChatRoomActivity::class.java)
         intent.putExtra("ChatRoom", chatRoom)
         intent.putExtra("Opponent", opponent)
         intent.putExtra("ChatRoomKey", roomKey)
+        intent.putExtra("Name", opponent[0].name)
         context.startActivity(intent)
         //(context as AppCompatActivity).finish()
     }
