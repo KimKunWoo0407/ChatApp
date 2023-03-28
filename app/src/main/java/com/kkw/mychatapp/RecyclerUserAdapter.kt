@@ -192,35 +192,53 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
         opponent.add(users[position])
         //var database = FirebaseDatabase.getInstance().getReference("ChatRoom")
         var chatRoom = ChatRoom(
-            mapOf(myUid to true, opponent[0].uid!! to true), null, singleRoom = opponent[0].uid!!
+            mapOf(myUid to true, opponent[0].uid!! to true), null
         )
 
+        FirebasePath.chatRoomPath
+            .whereEqualTo("singleRoom", true)
+            .whereEqualTo("users.${opponent[0].uid!!}", true)
+            .get()
+            .addOnSuccessListener { ref->
+                if(!ref.isEmpty){
+                    goToChatRoom(chatRoom, opponent)
+                }else{
+                    FirebasePath.chatRoomPath
+                        .add(chatRoom)
+                        .addOnSuccessListener {
+                            goToChatRoom(chatRoom, opponent)
+                        }
+                }
+            } .addOnFailureListener { e ->
+                Log.w("UAdapter", "Error adding document", e)
+            }
+        
         //var myUid = FirebaseAuth.getInstance().uid
             //database.child("chatRooms")
-        FirebasePath.chatRoom
-            //.orderByChild("users/${opponent[0].uid}").equalTo(true)
-            .orderByChild("singleRoom").equalTo(opponent[0].uid)
-            .addListenerForSingleValueEvent(object : ValueEventListener{
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    if(snapshot.value==null){
-                        //database.child("chatRooms")
-                        FirebasePath.chatRoom
-                            .push()
-                            .setValue(chatRoom).addOnSuccessListener {
-                                goToChatRoom(chatRoom, opponent)
-                            }
-                    }else{
-                        // context.startActivity(Intent(context, MainActivity::class.java))
-                        Log.d("userAdapter", snapshot.key!!)
-                        goToChatRoom(chatRoom, opponent, snapshot.key!!)
-                    }
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    Log.d("UserAdapterAdd", "error!")
-                }
-
-            })
+//        FirebasePath.chatRoom
+//            //.orderByChild("users/${opponent[0].uid}").equalTo(true)
+//            .orderByChild("singleRoom").equalTo(opponent[0].uid)
+//            .addListenerForSingleValueEvent(object : ValueEventListener{
+//                override fun onDataChange(snapshot: DataSnapshot) {
+//                    if(snapshot.value==null){
+//                        //database.child("chatRooms")
+//                        FirebasePath.chatRoom
+//                            .push()
+//                            .setValue(chatRoom).addOnSuccessListener {
+//                                goToChatRoom(chatRoom, opponent)
+//                            }
+//                    }else{
+//                        // context.startActivity(Intent(context, MainActivity::class.java))
+//                        Log.d("userAdapter", snapshot.key!!)
+//                        goToChatRoom(chatRoom, opponent, snapshot.key!!)
+//                    }
+//                }
+//
+//                override fun onCancelled(error: DatabaseError) {
+//                    Log.d("UserAdapterAdd", "error!")
+//                }
+//
+//            })
     }
 
     fun goToProfile(opponentUid : String){
