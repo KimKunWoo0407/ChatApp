@@ -197,7 +197,7 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Log.d("UserAdapterAdd", "error")
+                    Log.d("UserAdapterAdd", "error!")
                 }
 
             })
