@@ -15,6 +15,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
+import com.google.firebase.firestore.ktx.toObject
 import com.kkw.mychatapp.data.ChatRoom
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.User
@@ -31,8 +32,9 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
 
     var users : ArrayList<User> = arrayListOf()
     var allUsers : ArrayList<User> = arrayListOf()
+    lateinit var myUid : String
 
-    lateinit var currentUser: User
+    //lateinit var currentUser: User
 
     lateinit var listener:IItemClickListener
 
@@ -45,30 +47,48 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
     }
 
     private fun setupAllUserList(){
-        val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
+        myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
 
-        FirebasePath.user
-            .addListenerForSingleValueEvent(object : ValueEventListener{
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    users.clear()
-                    for(data in snapshot.children){
-                        var item = data.getValue<User>()
-                        if(item?.uid.equals(myUid)){
-                            currentUser = item!!
-                            continue
-                        }
-                        allUsers.add(item!!)
-                    }
-                    if(!roomKey.isNullOrEmpty())
-                        users = allUsers.clone() as ArrayList<User>
-                    notifyDataSetChanged()
+        FirebasePath.userPath
+            .whereNotEqualTo("uid", myUid)
+            .get()
+            .addOnSuccessListener {
+                documents->
+                users.clear()
+                for (document in documents){
+                    var item = document.toObject<User>()
+                    allUsers.add(item)
                 }
+                if(!roomKey.isNullOrEmpty())
+                    users = allUsers.clone() as ArrayList<User>
+                notifyDataSetChanged()
+            }.addOnFailureListener { exception ->
+                Log.w("UserAdapter", "Error getting documents: ", exception)
+            }
 
-                override fun onCancelled(error: DatabaseError) {
-                    Log.d("UserAdaptersetup", "error")
-                }
 
-            })
+//        FirebasePath.user
+//            .addListenerForSingleValueEvent(object : ValueEventListener{
+//                override fun onDataChange(snapshot: DataSnapshot) {
+//                    users.clear()
+//                    for(data in snapshot.children){
+//                        var item = data.getValue<User>()
+//                        if(item?.uid.equals(myUid)){
+//                            currentUser = item!!
+//                            continue
+//                        }
+//                        allUsers.add(item!!)
+//                    }
+//                    if(!roomKey.isNullOrEmpty())
+//                        users = allUsers.clone() as ArrayList<User>
+//                    notifyDataSetChanged()
+//                }
+//
+//                override fun onCancelled(error: DatabaseError) {
+//                    Log.d("UserAdaptersetup", "error")
+//                }
+//
+//            })
     }
 
     fun searchItem(target: String) : ArrayList<User> {
@@ -172,7 +192,7 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
         opponent.add(users[position])
         //var database = FirebaseDatabase.getInstance().getReference("ChatRoom")
         var chatRoom = ChatRoom(
-            mapOf(currentUser.uid!! to true, opponent[0].uid!! to true), null, singleRoom = opponent[0].uid!!
+            mapOf(myUid to true, opponent[0].uid!! to true), null, singleRoom = opponent[0].uid!!
         )
 
         //var myUid = FirebaseAuth.getInstance().uid
