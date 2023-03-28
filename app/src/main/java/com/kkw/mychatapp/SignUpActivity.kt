@@ -10,6 +10,8 @@ import android.widget.EditText
 import androidx.annotation.RequiresApi
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.ActivitySignUpBinding
 
@@ -23,6 +25,8 @@ class SignUpActivity : AppCompatActivity() {
     lateinit var edit_name: EditText
 
     lateinit var binding: ActivitySignUpBinding
+
+    var db = Firebase.firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -64,10 +68,27 @@ class SignUpActivity : AppCompatActivity() {
                         val userId = user?.uid
                         val userIdSt = userId.toString()
 
-                        FirebaseDatabase.getInstance().getReference("User")
-                            .child("users")
-                            .child(userId.toString())
-                            .setValue(User(name, userIdSt, email))
+
+//                        FirebaseDatabase.getInstance().getReference("User")
+//                            .child("users")
+//                            .child(userId.toString())
+//                            .setValue(User(name, userIdSt, email))
+
+                        val userData = hashMapOf(
+                            "email" to email,
+                            "name" to name,
+                            "uid" to userIdSt
+                        )
+
+                        db.collection("Users")
+                            .document(userIdSt)
+                            .set(userData)
+                            .addOnSuccessListener { documentReference ->
+                                Log.d("Sign in", "DocumentSnapshot added with ID: $documentReference")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.w("Sign in", "Error adding document", e)
+                            }
 
                         Log.e("UserId", "$userId")
                         startActivity(Intent(this@SignUpActivity, MainActivity::class.java))
