@@ -159,16 +159,16 @@ class ChatRoomActivity : AppCompatActivity() {
             var dateMessage:Message
 
             if(dateAdd){
-                dateMessage = Message("0000", curDate, "", confirmed = true, date = true)
                 var messageId = chatRoomKey+curDate+true.toString()
+                dateMessage = Message("0000", curDate, "", date = true, messageId = messageId)
                 saveIntoDB(messageId, dateMessage)
             }
 
             var oppMap : HashMap<String, Boolean>  = hashMapOf()
             opponentUser.forEach { oppMap[it.uid!!] = true }
 
-            var message = Message(myUid, curDate, edit_message.text.toString(), unconfirmedOpponent = oppMap)
             var messageId = chatRoomKey+curDate+false.toString()
+            var message = Message(senderUid = myUid, sent_date = curDate, content = edit_message.text.toString(), unconfirmedOpponent = oppMap, messageId = messageId)
             saveIntoDB(messageId, message)
 
         }catch (e: Exception){

@@ -46,7 +46,6 @@ class RecyclerMessageAdapter(
     ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var messages : ArrayList<Message> = arrayListOf()
-    var messagesKeys : ArrayList<String> = arrayListOf()
     private val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
     val recyclerView = (context as ChatRoomActivity).recycler_talks
     private var chatRoomPath : DatabaseReference = FirebasePath.chatRoom.child(chatRoomKey!!)
@@ -93,7 +92,6 @@ class RecyclerMessageAdapter(
                     (it.data!!["messages"] as HashMap<String, HashMap<String, Object>>)
                         .forEach { msg->
                         messages.add(Message.toObject(msg.value))
-                        messagesKeys.add(msg.key)
                     }
                     messages = ArrayList(messages.sortedWith(
                         compareBy(
@@ -259,13 +257,20 @@ class RecyclerMessageAdapter(
     }
 
     fun setShown(position: Int){
-        chatRoomPath.child("messages")
-            .child(messagesKeys[position])
-//            .child("confirmed").setValue(true)
-            .child("unconfirmedOpponent")
-            .updateChildren(hashMapOf<String, Any>(myUid to false))
+//        chatRoomPath.child("messages")
+//            .child(messagesKeys[position])
+////            .child("confirmed").setValue(true)
+//            .child("unconfirmedOpponent")
+//            .updateChildren(hashMapOf<String, Any>(myUid to false))
+//            .addOnSuccessListener {
+////                Log.i("checkShown", "성공")
+//            }
+
+        FirebasePath.chatRoomPath.document(chatRoomKey!!)
+            .update(mapOf("messages.${messages[position].messageId}.unconfirmedOpponent.${myUid}" to false))
             .addOnSuccessListener {
-//                Log.i("checkShown", "성공")
+                Log.i("checkShown", "성공")
             }
+
     }
 }
