@@ -192,7 +192,7 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
         opponent.add(users[position])
         //var database = FirebaseDatabase.getInstance().getReference("ChatRoom")
         var chatRoom = ChatRoom(
-            mapOf(myUid to true, opponent[0].uid!! to true), null
+            mapOf(myUid to true, opponent[0].uid!! to true)
         )
 
         FirebasePath.chatRoomPath
@@ -201,18 +201,18 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
             .get()
             .addOnSuccessListener { ref->
                 if(!ref.isEmpty){
-                    goToChatRoom(chatRoom, opponent)
+                    goToChatRoom(chatRoom, opponent, ref.first().id)
                 }else{
                     FirebasePath.chatRoomPath
                         .add(chatRoom)
                         .addOnSuccessListener {
-                            goToChatRoom(chatRoom, opponent)
+                            goToChatRoom(chatRoom, opponent, it.id)
                         }
                 }
             } .addOnFailureListener { e ->
                 Log.w("UAdapter", "Error adding document", e)
             }
-        
+
         //var myUid = FirebaseAuth.getInstance().uid
             //database.child("chatRooms")
 //        FirebasePath.chatRoom

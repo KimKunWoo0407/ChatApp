@@ -16,6 +16,8 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
+import com.google.firebase.firestore.ktx.toObject
+import com.kkw.mychatapp.data.ChatRoom
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.Message
 import com.kkw.mychatapp.data.User
@@ -29,6 +31,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 interface MessageHolder{
 
@@ -38,7 +41,7 @@ interface MessageHolder{
 @RequiresApi(Build.VERSION_CODES.O)
 class RecyclerMessageAdapter(
     val context: Context,
-    chatRoomKey : String?,
+    val chatRoomKey : String?,
     private val opponents: ArrayList<User>?
     ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -53,7 +56,6 @@ class RecyclerMessageAdapter(
         opponents?.forEach{
             userMap[it.uid!!] = it
         }
-
         getMessages()
     }
 
@@ -63,21 +65,46 @@ class RecyclerMessageAdapter(
 
 
     private fun getMessages(){
-        chatRoomPath.child("messages")
-            .addValueEventListener(object : ValueEventListener{
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    messages.clear()
-                    for(data in snapshot.children){
-                        messages.add(data.getValue<Message>()!!)
-                        messagesKeys.add(data.key!!)
+//        chatRoomPath.child("messages")
+//            .addValueEventListener(object : ValueEventListener{
+//                override fun onDataChange(snapshot: DataSnapshot) {
+//                    messages.clear()
+//                    for(data in snapshot.children){
+//                        messages.add(data.getValue<Message>()!!)
+//                        messagesKeys.add(data.key!!)
+//                    }
+//                    notifyDataSetChanged()
+//                    recyclerView.scrollToPosition(messages.size - 1)
+//                }
+//                override fun onCancelled(error: DatabaseError) {
+//                }
+//
+//            })
+
+        FirebasePath.chatRoomPath.document(chatRoomKey!!)
+            .addSnapshotListener{
+                it, e ->
+                messages.clear()
+                if(e!=null){
+                    Log.w("Message", "Listen failed.", e)
+                    return@addSnapshotListener
+                }
+                if (it != null) {
+                    (it.data!!["messages"] as HashMap<String, HashMap<String, Object>>)
+                        .forEach { msg->
+                        messages.add(Message.toObject(msg.value))
+                        messagesKeys.add(msg.key)
                     }
+                    messages = ArrayList(messages.sortedWith(
+                        compareBy(
+                            {it.sent_date},
+                            {!it.date}
+                        )
+                    ))
                     notifyDataSetChanged()
                     recyclerView.scrollToPosition(messages.size - 1)
                 }
-                override fun onCancelled(error: DatabaseError) {
-                }
-
-            })
+            }
     }
 
     override fun getItemViewType(position: Int): Int {

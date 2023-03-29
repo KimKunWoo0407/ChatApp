@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import com.google.firebase.firestore.FieldValue
 import com.kkw.mychatapp.data.ChatRoom
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.Message
@@ -53,7 +54,8 @@ class ChatRoomActivity : AppCompatActivity() {
         initializeProperty()
         initializeView()
         initializeListener()
-        setupChatRooms()
+        setupRecycler()
+        //setupChatRooms()
     }
 
     private fun initializeProperty(){
@@ -108,22 +110,37 @@ class ChatRoomActivity : AppCompatActivity() {
         txt_title.text = roomTitle.substring(0, roomTitle.length-3)
     }
 
-    private fun setupChatRooms(){
-        if(chatRoomKey.isNullOrBlank())
-            setupChatRoomKey()
-        else
-            setupRecycler()
-    }
 
-    private fun saveIntoDB(message: Message){
-        FirebasePath.chatRoom
-            .child(chatRoomKey).child("messages")
-            .push().setValue(message).addOnSuccessListener {
+    private fun saveIntoDB(messageId : String, message: Message){
+//        FirebasePath.chatRoom
+//            .child(chatRoomKey).child("messages")
+//            .push().setValue(message).addOnSuccessListener {
+//                Log.i("putMessage", "성공")
+//                edit_message.text.clear()
+//            }.addOnCanceledListener {
+//                Log.i("putMessage", "실패")
+//            }
+//        FirebasePath.chatRoomPath
+//            .document(chatRoomKey)
+//            .collection("messages")
+//            .add(message)
+//            .addOnSuccessListener {
+//                Log.i("putMessage", "성공")
+//                edit_message.text.clear()
+//            }.addOnCanceledListener {
+//                Log.i("putMessage", "실패")
+//            }
+
+        FirebasePath.chatRoomPath
+            .document(chatRoomKey)
+            .update(mapOf("messages.$messageId" to message))
+            .addOnSuccessListener {
                 Log.i("putMessage", "성공")
                 edit_message.text.clear()
             }.addOnCanceledListener {
                 Log.i("putMessage", "실패")
             }
+
     }
 
     private fun putMessage(){
@@ -143,40 +160,21 @@ class ChatRoomActivity : AppCompatActivity() {
 
             if(dateAdd){
                 dateMessage = Message("0000", curDate, "", confirmed = true, date = true)
-                saveIntoDB(dateMessage)
+                var messageId = chatRoomKey+curDate+true.toString()
+                saveIntoDB(messageId, dateMessage)
             }
 
             var oppMap : HashMap<String, Boolean>  = hashMapOf()
             opponentUser.forEach { oppMap[it.uid!!] = true }
 
             var message = Message(myUid, curDate, edit_message.text.toString(), unconfirmedOpponent = oppMap)
-            Log.i("ChatRoomKey", chatRoomKey)
-            saveIntoDB(message)
+            var messageId = chatRoomKey+curDate+false.toString()
+            saveIntoDB(messageId, message)
 
         }catch (e: Exception){
             e.printStackTrace()
             Log.i("putMessage", "오류")
         }
-    }
-
-    private fun setupChatRoomKey(){ //1대1 방 처음 만들어 졌을 때
-//        FirebasePath.chatRoom.orderByChild("users/${opponentUser.uid}").equalTo(true)
-        FirebasePath.chatRoom
-            //.orderByChild("users/${opponentUser[0].uid}").equalTo(true)
-            .orderByChild("singleRoom").equalTo(opponentUser[0].uid)
-            .addListenerForSingleValueEvent(object : ValueEventListener{
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    for(data in snapshot.children){
-                        chatRoomKey = data.key!!
-                        setupRecycler()
-                        break
-                    }
-                }
-                override fun onCancelled(error: DatabaseError) {
-                    Log.i("setupKey", "에러")
-                }
-
-            })
     }
 
     fun setupRecycler(){

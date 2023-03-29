@@ -39,31 +39,31 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     }
 
     private fun setupAllUserList(){
-        FirebasePath.chatRoom
-            .orderByChild("users/$myUid").equalTo(true)
-            .addListenerForSingleValueEvent(object : ValueEventListener{
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    chatRooms.clear()
-                    for(data in snapshot.children){
-                        var roomData = data.getValue<ChatRoom>()!!
-                        roomData.roomKey=data.key.toString()!!
-
-                        //allChatRooms.add(data.getValue<ChatRoom>()!!)
-                        allChatRooms.add(roomData)
-
-                        chatRoomKeys.add(data.key!!)
-                    }
-
-                    if(shouldShown)
-                        chatRooms = allChatRooms.clone() as ArrayList<ChatRoom>
-
-                    notifyDataSetChanged()
-                }
-                override fun onCancelled(error: DatabaseError) {
-                  Log.d("ChatRoomAdapter_setup", "error")
-                }
-
-            })
+//        FirebasePath.chatRoom
+//            .orderByChild("users/$myUid").equalTo(true)
+//            .addListenerForSingleValueEvent(object : ValueEventListener{
+//                override fun onDataChange(snapshot: DataSnapshot) {
+//                    chatRooms.clear()
+//                    for(data in snapshot.children){
+//                        var roomData = data.getValue<ChatRoom>()!!
+//                        roomData.roomKey=data.key.toString()!!
+//
+//                        //allChatRooms.add(data.getValue<ChatRoom>()!!)
+//                        allChatRooms.add(roomData)
+//
+//                        chatRoomKeys.add(data.key!!)
+//                    }
+//
+//                    if(shouldShown)
+//                        chatRooms = allChatRooms.clone() as ArrayList<ChatRoom>
+//
+//                    notifyDataSetChanged()
+//                }
+//                override fun onCancelled(error: DatabaseError) {
+//                  Log.d("ChatRoomAdapter_setup", "error")
+//                }
+//
+//            })
     }
 
     fun searchItem(target: ArrayList<User>){
@@ -90,6 +90,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     private fun setupLastMessageAndDate(holder: ViewHolder, position: Int){
         try{
             var lastMessage = chatRooms[position].messages!!.values.sortedWith(compareBy { it.sent_date }).last()
+//            var lastMessage = chatRooms[position].messages!!.sortedWith(compareBy { it.sent_date }).last()
             holder.txt_message.text = lastMessage.content
             holder.txt_date.text =
                 getLastMessageTimeString(lastMessage.sent_date)
@@ -102,6 +103,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
         try{
             var unconfirmedCount = chatRooms[position].messages!!.filter {
                 it.value.unconfirmedOpponent.containsKey(myUid)&&it.value.unconfirmedOpponent[myUid] == true
+//                it.unconfirmedOpponent.containsKey(myUid)&&it.unconfirmedOpponent[myUid] == true
             }.size
 
 //            var unconfirmedCount = chatRooms[position].messages!!.filter {

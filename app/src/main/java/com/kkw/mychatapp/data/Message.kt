@@ -6,5 +6,18 @@ data class Message(
     val content: String="",
     val confirmed:Boolean = false,
     val date: Boolean = false,
-    val unconfirmedOpponent: Map<String, Boolean> = HashMap()
-):java.io.Serializable{}
+    val unconfirmedOpponent: Map<String, Boolean> = HashMap(),
+):java.io.Serializable{
+    companion object{
+        fun toObject(myMap : HashMap<String, Object>): Message {
+            return Message(
+                myMap["senderUid"].toString(),
+                myMap["sent_date"].toString(),
+                myMap["content"].toString(),
+                myMap["confirmed"] as Boolean,
+                myMap["date"] as Boolean,
+                myMap["unconfirmedOpponent"] as HashMap<String, Boolean>
+            )
+        }
+    }
+}
