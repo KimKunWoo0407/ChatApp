@@ -8,12 +8,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
-import androidx.fragment.app.findFragment
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.firestore.ktx.toObject
 import com.kkw.mychatapp.data.ChatRoom
@@ -192,7 +188,7 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
         opponent.add(users[position])
         //var database = FirebaseDatabase.getInstance().getReference("ChatRoom")
         var chatRoom = ChatRoom(
-            mapOf(myUid to true, opponent[0].uid!! to true)
+            users = mapOf(myUid to true, opponent[0].uid!! to true)
         )
 
         FirebasePath.chatRoomPath

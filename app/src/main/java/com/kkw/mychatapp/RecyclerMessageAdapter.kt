@@ -17,6 +17,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.firestore.remote.WatchChange.DocumentChange
 import com.kkw.mychatapp.data.ChatRoom
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.Message
@@ -45,21 +46,22 @@ class RecyclerMessageAdapter(
     private val opponents: ArrayList<User>?
     ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    var messages : ArrayList<Message> = arrayListOf()
+    var messages : ArrayList<Pair<String, Message>> = arrayListOf()
     private val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
     val recyclerView = (context as ChatRoomActivity).recycler_talks
-    private var chatRoomPath : DatabaseReference = FirebasePath.chatRoom.child(chatRoomKey!!)
     var userMap = mutableMapOf<String, User>()
+    var sorted = false
 
     init{
         opponents?.forEach{
             userMap[it.uid!!] = it
         }
         getMessages()
+
     }
 
     fun getLatestMessage(): Message? {
-        return messages.lastOrNull()
+        return messages.lastOrNull()?.second
     }
 
 
@@ -80,35 +82,49 @@ class RecyclerMessageAdapter(
 //
 //            })
 
+        messages.clear()
         FirebasePath.chatRoomPath.document(chatRoomKey!!)
+            .collection("messages")
             .addSnapshotListener{
-                it, e ->
-                messages.clear()
+                it, e->
                 if(e!=null){
                     Log.w("Message", "Listen failed.", e)
                     return@addSnapshotListener
                 }
                 if (it != null) {
-                    (it.data!!["messages"] as HashMap<String, HashMap<String, Object>>)
-                        .forEach { msg->
-                        messages.add(Message.toObject(msg.value))
+                    it.documentChanges.forEach{
+                        change->
+                        if(change.type == com.google.firebase.firestore.DocumentChange.Type.ADDED)
+                        {
+                            var doc = change.document
+                            messages.add(Pair(doc.id, Message.toObject(doc.data as HashMap<String, Object>)))
+                            notifyItemInserted(messages.size - 1)
+                        }else if(change.type == com.google.firebase.firestore.DocumentChange.Type.MODIFIED){
+
+                        }
+
                     }
-                    messages = ArrayList(messages.sortedWith(
-                        compareBy(
-                            {it.sent_date},
-                            {!it.date}
-                        )
-                    ))
-                    notifyDataSetChanged()
+                    if(!sorted)
+                    {
+                        messages = ArrayList(messages.sortedWith(
+                            compareBy(
+                                {it.second.sent_date},
+                                {!it.second.date}
+                            )
+                        ))
+                        sorted = true
+                    }
                     recyclerView.scrollToPosition(messages.size - 1)
                 }
             }
+
+
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if(messages[position].date) 2
+        return if(messages[position].second.date) 2
         else{
-            if (messages[position].senderUid == myUid) 1 else 0
+            if (messages[position].second.senderUid == myUid) 1 else 0
         }
     }
 
@@ -145,7 +161,7 @@ class RecyclerMessageAdapter(
         private var txtDate = itemView.txtDate
 
         override fun bind(position: Int){
-            var date = messages[position].sent_date
+            var date = messages[position].second.sent_date
             txtDate.text = getDateText(date.substring(0,8))
         }
 
@@ -187,15 +203,13 @@ class RecyclerMessageAdapter(
 
         override fun bind(position: Int){
             var message = messages[position]
-            var sendDate = message.sent_date
+            var sendDate = message.second.sent_date
 
-            txtMessage.text = message.content
+            txtMessage.text = message.second.content
             txtDate.text = getDateText(sendDate)
 
 
-            numberingCallback(countUnconfirmed(message), txtIsShown = txtIsShown)
-
-
+            numberingCallback(countUnconfirmed(message.second), txtIsShown = txtIsShown)
 //            if(message.confirmed){
 //                txtIsShown.visibility = View.GONE
 //            }else
@@ -211,18 +225,20 @@ class RecyclerMessageAdapter(
         var sender = itemView.senderName
 
         override fun bind(position: Int){
-            var message = messages[position]
-            var sendDate = message.sent_date
+            Log.d("bind", "bind")
 
-            var senderName = userMap[message.senderUid]?.name
+            var message = messages[position]
+            var sendDate = message.second.sent_date
+
+            var senderName = userMap[message.second.senderUid]?.name
 
             sender.text = senderName
 
-            txtMessage.text = message.content
+            txtMessage.text = message.second.content
             txtDate.text = getDateText(sendDate)
 
             
-            numberingCallback(countUnconfirmed(message), txtIsShown=txtIsShown)
+            numberingCallback(countUnconfirmed(message.second), txtIsShown=txtIsShown)
 
 //            if(message.confirmed){
 //                txtIsShown.visibility = View.GONE
@@ -266,10 +282,20 @@ class RecyclerMessageAdapter(
 ////                Log.i("checkShown", "성공")
 //            }
 
-        FirebasePath.chatRoomPath.document(chatRoomKey!!)
-            .update(mapOf("messages.${messages[position].messageId}.unconfirmedOpponent.${myUid}" to false))
-            .addOnSuccessListener {
-                Log.i("checkShown", "성공")
+
+        var doc =  FirebasePath.chatRoomPath.document(chatRoomKey!!)
+            .collection("messages")
+            .document("${messages[position].first}")
+
+        doc.get()
+            .addOnSuccessListener { snapshot ->
+                if((snapshot.data!!["unconfirmedOpponent"] as HashMap<String, Boolean>)[myUid] == true){
+                    doc.update(mapOf("unconfirmedOpponent.${myUid}" to false))
+                        .addOnCompleteListener{
+                            Log.d("abc", "${it.isSuccessful}")
+                        }
+                }
+
             }
 
     }

@@ -64,6 +64,18 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
 //                }
 //
 //            })
+        FirebasePath.chatRoomPath
+            .whereEqualTo("users.${myUid}", true)
+            .addSnapshotListener{
+                snapshot, e->
+                if(e!=null){
+                    Log.w("ChatRoom", "Listen failed.", e)
+                    return@addSnapshotListener
+                }
+                snapshot?.forEach {
+
+                }
+            }
     }
 
     fun searchItem(target: ArrayList<User>){

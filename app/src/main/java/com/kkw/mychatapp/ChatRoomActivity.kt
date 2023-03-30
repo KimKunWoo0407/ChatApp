@@ -111,7 +111,7 @@ class ChatRoomActivity : AppCompatActivity() {
     }
 
 
-    private fun saveIntoDB(messageId : String, message: Message){
+    private fun saveIntoDB(message: Message){
 //        FirebasePath.chatRoom
 //            .child(chatRoomKey).child("messages")
 //            .push().setValue(message).addOnSuccessListener {
@@ -120,26 +120,27 @@ class ChatRoomActivity : AppCompatActivity() {
 //            }.addOnCanceledListener {
 //                Log.i("putMessage", "실패")
 //            }
-//        FirebasePath.chatRoomPath
-//            .document(chatRoomKey)
-//            .collection("messages")
-//            .add(message)
-//            .addOnSuccessListener {
-//                Log.i("putMessage", "성공")
-//                edit_message.text.clear()
-//            }.addOnCanceledListener {
-//                Log.i("putMessage", "실패")
-//            }
 
         FirebasePath.chatRoomPath
             .document(chatRoomKey)
-            .update(mapOf("messages.$messageId" to message))
+            .collection("messages")
+            .add(message)
             .addOnSuccessListener {
                 Log.i("putMessage", "성공")
                 edit_message.text.clear()
             }.addOnCanceledListener {
                 Log.i("putMessage", "실패")
             }
+
+//        FirebasePath.chatRoomPath
+//            .document(chatRoomKey)
+//            .update(mapOf("messages.$messageId" to message))
+//            .addOnSuccessListener {
+//                Log.i("putMessage", "성공")
+//                edit_message.text.clear()
+//            }.addOnCanceledListener {
+//                Log.i("putMessage", "실패")
+//            }
 
     }
 
@@ -159,17 +160,15 @@ class ChatRoomActivity : AppCompatActivity() {
             var dateMessage:Message
 
             if(dateAdd){
-                var messageId = chatRoomKey+curDate+true.toString()
-                dateMessage = Message("0000", curDate, "", date = true, messageId = messageId)
-                saveIntoDB(messageId, dateMessage)
+                dateMessage = Message("0000", curDate, "", date = true)
+                saveIntoDB(dateMessage)
             }
 
             var oppMap : HashMap<String, Boolean>  = hashMapOf()
             opponentUser.forEach { oppMap[it.uid!!] = true }
 
-            var messageId = chatRoomKey+curDate+false.toString()
-            var message = Message(senderUid = myUid, sent_date = curDate, content = edit_message.text.toString(), unconfirmedOpponent = oppMap, messageId = messageId)
-            saveIntoDB(messageId, message)
+            var message = Message(senderUid = myUid, sent_date = curDate, content = edit_message.text.toString(), unconfirmedOpponent = oppMap)
+            saveIntoDB(message)
 
         }catch (e: Exception){
             e.printStackTrace()
