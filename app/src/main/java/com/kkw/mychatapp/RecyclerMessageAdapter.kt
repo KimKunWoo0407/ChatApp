@@ -16,6 +16,8 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.firestore.remote.WatchChange.DocumentChange
 import com.kkw.mychatapp.data.ChatRoom
@@ -42,8 +44,8 @@ interface MessageHolder{
 @RequiresApi(Build.VERSION_CODES.O)
 class RecyclerMessageAdapter(
     val context: Context,
-    val chatRoomKey : String?,
-    private val opponents: ArrayList<User>?
+    private val chatRoomKey : String?,
+    opponents: ArrayList<User>?
     ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var messages : ArrayList<Pair<String, Message>> = arrayListOf()
@@ -52,7 +54,13 @@ class RecyclerMessageAdapter(
     var userMap = mutableMapOf<String, User>()
     var sorted = false
 
+    lateinit var query : CollectionReference
+    lateinit var registration : ListenerRegistration
+
+    var idIndexMap = mutableMapOf<String, Int>()
+
     init{
+        Log.d("myUid", myUid)
         opponents?.forEach{
             userMap[it.uid!!] = it
         }
@@ -60,10 +68,15 @@ class RecyclerMessageAdapter(
 
     }
 
+
     fun getLatestMessage(): Message? {
         return messages.lastOrNull()?.second
     }
 
+
+    fun removeRegistration() {
+        registration.remove()
+    }
 
     private fun getMessages(){
 //        chatRoomPath.child("messages")
@@ -83,8 +96,10 @@ class RecyclerMessageAdapter(
 //            })
 
         messages.clear()
-        FirebasePath.chatRoomPath.document(chatRoomKey!!)
+        query = FirebasePath.chatRoomPath.document(chatRoomKey!!)
             .collection("messages")
+
+        registration = query
             .addSnapshotListener{
                 it, e->
                 if(e!=null){
@@ -97,8 +112,13 @@ class RecyclerMessageAdapter(
                         if(change.type == com.google.firebase.firestore.DocumentChange.Type.ADDED)
                         {
                             var doc = change.document
-                            messages.add(Pair(doc.id, Message.toObject(doc.data as HashMap<String, Object>)))
-                            notifyItemInserted(messages.size - 1)
+                            var msg = Message.toObject(doc.data as HashMap<String, Object>)
+                            messages.add(Pair(doc.id, msg))
+                            if(msg.senderUid!=myUid)
+                                setShown(messages.size - 1)
+                            idIndexMap[doc.id] = messages.size -1
+                            if(sorted)
+                                notifyItemInserted(messages.size - 1)
                         }else if(change.type == com.google.firebase.firestore.DocumentChange.Type.MODIFIED){
 
                         }
@@ -113,11 +133,14 @@ class RecyclerMessageAdapter(
                             )
                         ))
                         sorted = true
+                        for(pos in messages.indices){
+                            idIndexMap[messages[pos].first] = pos
+                        }
+                        notifyDataSetChanged()
                     }
                     recyclerView.scrollToPosition(messages.size - 1)
                 }
             }
-
 
     }
 
@@ -225,7 +248,6 @@ class RecyclerMessageAdapter(
         var sender = itemView.senderName
 
         override fun bind(position: Int){
-            Log.d("bind", "bind")
 
             var message = messages[position]
             var sendDate = message.second.sent_date
@@ -245,7 +267,6 @@ class RecyclerMessageAdapter(
 //            }else
 //                txtIsShown.visibility=View.VISIBLE
 
-            setShown(position)
         }
 
     }
@@ -282,6 +303,8 @@ class RecyclerMessageAdapter(
 ////                Log.i("checkShown", "성공")
 //            }
 
+
+        Log.d("setShown", myUid)
 
         var doc =  FirebasePath.chatRoomPath.document(chatRoomKey!!)
             .collection("messages")

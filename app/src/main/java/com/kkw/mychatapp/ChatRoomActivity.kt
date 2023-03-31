@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.core.View
 import com.kkw.mychatapp.data.ChatRoom
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.Message
@@ -30,7 +31,8 @@ import java.util.TimeZone
 @RequiresApi(Build.VERSION_CODES.O)
 class ChatRoomActivity : AppCompatActivity() {
 
-    lateinit var binding : ActivityChatRoomBinding
+    private var _binding : ActivityChatRoomBinding? = null
+    private val binding get() = _binding!!
     private lateinit var btn_exit : ImageButton
     private lateinit var btn_submit : Button
     private lateinit var addBtn : Button
@@ -44,11 +46,12 @@ class ChatRoomActivity : AppCompatActivity() {
     lateinit var myUid : String
     lateinit var roomTitle : String
     lateinit var container : FrameLayout
+    lateinit var messageAdapter: RecyclerMessageAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityChatRoomBinding.inflate(layoutInflater)
+        _binding = ActivityChatRoomBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         initializeProperty()
@@ -57,6 +60,7 @@ class ChatRoomActivity : AppCompatActivity() {
         setupRecycler()
         //setupChatRooms()
     }
+
 
     private fun initializeProperty(){
         myUid = FirebaseAuth.getInstance().currentUser?.uid!!
@@ -83,19 +87,25 @@ class ChatRoomActivity : AppCompatActivity() {
         btn_submit = binding.btnSubmit
         addBtn = binding.addOpponentBtn
         txt_title = binding.txtTitle
-//        txt_title.text = opponentUser!!.name ?: ""
         txt_title.text = roomTitle
         container = binding.container
     }
 
+
+    override fun onDestroy() {
+        super.onDestroy()
+        messageAdapter.removeRegistration()
+        _binding = null
+    }
+
     private fun initializeListener(){
-        btn_exit.setOnClickListener(){
+        btn_exit.setOnClickListener{
             finish()
         }
-        btn_submit.setOnClickListener(){
+        btn_submit.setOnClickListener{
             putMessage()
         }
-        addBtn.setOnClickListener(){
+        addBtn.setOnClickListener{
             val transaction = supportFragmentManager.beginTransaction()
                 .add(R.id.container,AddOpponentFragment(chatRoomKey, opponentUser))
             transaction.commit()
@@ -177,8 +187,10 @@ class ChatRoomActivity : AppCompatActivity() {
     }
 
     fun setupRecycler(){
+
         recycler_talks.layoutManager = LinearLayoutManager(this)
-        recycler_talks.adapter = RecyclerMessageAdapter(this, chatRoomKey, opponentUser)
+        messageAdapter = RecyclerMessageAdapter(this, chatRoomKey, opponentUser)
+        recycler_talks.adapter = messageAdapter
     }
 
     private fun getDateTimeString() : String{

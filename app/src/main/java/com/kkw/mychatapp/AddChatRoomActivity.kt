@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
@@ -19,17 +20,17 @@ import com.kkw.mychatapp.databinding.ActivityAddChatRoomBinding
 @RequiresApi(Build.VERSION_CODES.O)
 class AddChatRoomActivity : AppCompatActivity() {
 
-    lateinit var binding : ActivityAddChatRoomBinding
+    var _binding : ActivityAddChatRoomBinding? = null
+    val binding get() = _binding!!
     lateinit var btn_exit : ImageButton
     lateinit var edit_opponent : EditText
     lateinit var firebaseDatabase : DatabaseReference
     lateinit var recycler_people : RecyclerView
     lateinit var recyclerChatRoom: RecyclerView
-    lateinit var addBtn: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAddChatRoomBinding.inflate(layoutInflater)
+        _binding = ActivityAddChatRoomBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         initializeView()
@@ -37,8 +38,15 @@ class AddChatRoomActivity : AppCompatActivity() {
         setupRecycler()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
+
     fun initializeView(){
-        firebaseDatabase = FirebaseDatabase.getInstance().reference!!
+        //firebaseDatabase = FirebaseDatabase.getInstance().reference!!
+
+
         btn_exit = binding.imgBtnBack
         edit_opponent = binding.editOpponentName
         recycler_people = binding.recyclerPeople

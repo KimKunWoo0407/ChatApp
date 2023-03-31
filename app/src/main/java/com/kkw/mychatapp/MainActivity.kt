@@ -20,24 +20,26 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var btnAddchatRoom: Button
     lateinit var btnSignout: Button
-    lateinit var binding: ActivityMainBinding
+    var _binding: ActivityMainBinding? = null
+    private val binding get() = _binding!!
     lateinit var firebaseDatabase: DatabaseReference
     lateinit var recycler_chatroom: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         initializeView()
         initializeListener()
+        setupRecycler()
 
     }
 
-    override fun onResume() {
-        super.onResume()
-        setupRecycler()
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     fun initializeView(){
