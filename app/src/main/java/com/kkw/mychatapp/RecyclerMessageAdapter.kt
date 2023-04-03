@@ -41,6 +41,8 @@ interface MessageHolder{
     fun bind(position: Int)
 }
 
+data class MessagePair<T, U>(var first : T, var second: U)
+
 @RequiresApi(Build.VERSION_CODES.O)
 class RecyclerMessageAdapter(
     val context: Context,
@@ -48,7 +50,9 @@ class RecyclerMessageAdapter(
     opponents: ArrayList<User>?
     ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    var messages : ArrayList<Pair<String, Message>> = arrayListOf()
+    //var messages : ArrayList<Pair<String, Message>> = arrayListOf()
+    var messages : ArrayList<MessagePair<String, Message>> = arrayListOf()
+
     private val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
     val recyclerView = (context as ChatRoomActivity).recycler_talks
     var userMap = mutableMapOf<String, User>()
@@ -60,7 +64,6 @@ class RecyclerMessageAdapter(
     var idIndexMap = mutableMapOf<String, Int>()
 
     init{
-        Log.d("myUid", myUid)
         opponents?.forEach{
             userMap[it.uid!!] = it
         }
@@ -109,23 +112,34 @@ class RecyclerMessageAdapter(
                 if (it != null) {
                     it.documentChanges.forEach{
                         change->
+                        var doc = change.document
+                        var msg = Message.toObject(doc.data as HashMap<String, Object>)
+//                        messages.add(Pair(doc.id, msg))
                         if(change.type == com.google.firebase.firestore.DocumentChange.Type.ADDED)
                         {
-                            var doc = change.document
-                            var msg = Message.toObject(doc.data as HashMap<String, Object>)
-                            messages.add(Pair(doc.id, msg))
+                            //var msg = Message.toObject(doc.data as HashMap<String, Object>)
+//                            Log.d("mAdapterAdded", "${doc.id}")
+                            messages.add(MessagePair(doc.id, msg))
                             if(msg.senderUid!=myUid)
                                 setShown(messages.size - 1)
                             idIndexMap[doc.id] = messages.size -1
+//                            Log.d("mAdapterAdded", "${doc.id} : ${idIndexMap[doc.id]}")
                             if(sorted)
+                            {
                                 notifyItemInserted(messages.size - 1)
-                        }else if(change.type == com.google.firebase.firestore.DocumentChange.Type.MODIFIED){
+                                recyclerView.scrollToPosition(messages.size - 1)
+                            }
 
+                        }else if(change.type == com.google.firebase.firestore.DocumentChange.Type.MODIFIED){
+//                            Log.d("mAdapterModified", "${doc.id} : ${idIndexMap[doc.id]}")
+                            messages[idIndexMap[doc.id]!!].second = msg
+                            notifyItemChanged(idIndexMap[doc.id]!!)
                         }
 
                     }
                     if(!sorted)
                     {
+//                        Log.d("mAdapter", "sorted")
                         messages = ArrayList(messages.sortedWith(
                             compareBy(
                                 {it.second.sent_date},
@@ -138,6 +152,7 @@ class RecyclerMessageAdapter(
                         }
                         notifyDataSetChanged()
                     }
+                    //notifyDataSetChanged()
                     recyclerView.scrollToPosition(messages.size - 1)
                 }
             }
@@ -202,7 +217,10 @@ class RecyclerMessageAdapter(
         }
     }
 
-    fun countUnconfirmed(message : Message) : Int{
+    fun countUnconfirmed(message : Message, position : Int = -1) : Int{
+//        if(position>=0){
+//            Log.d("mAdapterCount", "$position + : ${message.unconfirmedOpponent}")
+//        }
         var unconfirmedNum = 0
         message.unconfirmedOpponent.forEach{
             if(it.value) unconfirmedNum++
@@ -212,9 +230,10 @@ class RecyclerMessageAdapter(
 
     fun numberingCallback(unconfirmedNum: Int, txtIsShown: TextView){
         if(unconfirmedNum>0){
+            txtIsShown.visibility = View.VISIBLE
             txtIsShown.text = unconfirmedNum.toString()
         }else{
-            txtIsShown.visibility = View.GONE
+            txtIsShown.visibility = View.INVISIBLE
         }
     }
 
@@ -232,11 +251,7 @@ class RecyclerMessageAdapter(
             txtDate.text = getDateText(sendDate)
 
 
-            numberingCallback(countUnconfirmed(message.second), txtIsShown = txtIsShown)
-//            if(message.confirmed){
-//                txtIsShown.visibility = View.GONE
-//            }else
-//                txtIsShown.visibility=View.VISIBLE
+            numberingCallback(countUnconfirmed(message.second, position), txtIsShown = txtIsShown)
         }
     }
 
@@ -259,13 +274,9 @@ class RecyclerMessageAdapter(
             txtMessage.text = message.second.content
             txtDate.text = getDateText(sendDate)
 
-            
-            numberingCallback(countUnconfirmed(message.second), txtIsShown=txtIsShown)
+//            Log.d("mAdapterOtherViewHolder", "$position : ${txtMessage.text}")
 
-//            if(message.confirmed){
-//                txtIsShown.visibility = View.GONE
-//            }else
-//                txtIsShown.visibility=View.VISIBLE
+            numberingCallback(countUnconfirmed(message.second, position), txtIsShown=txtIsShown)
 
         }
 
@@ -303,20 +314,19 @@ class RecyclerMessageAdapter(
 ////                Log.i("checkShown", "성공")
 //            }
 
-
-        Log.d("setShown", myUid)
-
         var doc =  FirebasePath.chatRoomPath.document(chatRoomKey!!)
             .collection("messages")
             .document("${messages[position].first}")
+
+//        Log.d("mAdaptersetShown", "$position : ${messages[position].second.content}")
 
         doc.get()
             .addOnSuccessListener { snapshot ->
                 if((snapshot.data!!["unconfirmedOpponent"] as HashMap<String, Boolean>)[myUid] == true){
                     doc.update(mapOf("unconfirmedOpponent.${myUid}" to false))
-                        .addOnCompleteListener{
-                            Log.d("abc", "${it.isSuccessful}")
-                        }
+//                        .addOnCompleteListener{
+//                            Log.d("mAdaptersetShown", "ok")
+//                        }
                 }
 
             }
