@@ -29,7 +29,6 @@ import java.util.TimeZone
 @RequiresApi(Build.VERSION_CODES.O)
 class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = true) : RecyclerView.Adapter<RecyclerChatRoomsAdapter.ViewHolder>() {
 
-
     var chatRooms: ArrayList<ChatRoom> = arrayListOf()
     var allChatRooms : ArrayList<ChatRoom> = arrayListOf()
     var chatRoomKeys: ArrayList<String> = arrayListOf()
@@ -107,7 +106,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
                         .get().addOnSuccessListener {
                             querySnapshot->
                             val myMap = querySnapshot.documents.associate{
-                                 it.id to it.data
+                                 it.id to Message.toObject(it.data as HashMap<String, Any>)
                             } as HashMap<String, Message>
 
                             if(change.type == DocumentChange.Type.ADDED){
@@ -159,9 +158,16 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     }
 
     private fun setupLastMessageAndDate(holder: ViewHolder, position: Int){
+
         try{
-            var lastMessage = chatRooms[position].messages!!.values.sortedWith(compareBy { it.sent_date }).last()
-//            var lastMessage = chatRooms[position].messages!!.sortedWith(compareBy { it.sent_date }).last()
+
+            var lastMessage = chatRooms[position].messages!!.values.sortedWith(
+                compareBy {
+                    it.sent_date
+                    !it.date
+                }
+            ).last()
+
             holder.txt_message.text = lastMessage.content
             holder.txt_date.text =
                 getLastMessageTimeString(lastMessage.sent_date)
@@ -171,15 +177,16 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     }
 
     private fun setUpMessageCount(holder: ViewHolder, position: Int){
-        try{
-            var unconfirmedCount = chatRooms[position].messages!!.filter {
-                it.value.unconfirmedOpponent.containsKey(myUid)&&it.value.unconfirmedOpponent[myUid] == true
-//                it.unconfirmedOpponent.containsKey(myUid)&&it.unconfirmedOpponent[myUid] == true
-            }.size
 
-//            var unconfirmedCount = chatRooms[position].messages!!.filter {
-//                !it.value.confirmed && it.value.senderUid != myUid
-//            }.size
+        try{
+            var unconfirmedCount = chatRooms[position].messages!!
+                .filter {
+//                Message.toObject(it.value as HashMap<String, Any>).unconfirmedOpponent.containsKey(myUid)
+//                        && (Message.toObject(it.value as HashMap<String, Any>).unconfirmedOpponent[myUid] == true)
+                    it.value.unconfirmedOpponent.containsKey(myUid)
+                            && it.value.unconfirmedOpponent[myUid] == true
+
+            }.size
 
             if(unconfirmedCount>0){
                 holder.txt_chatCount.visibility = View.VISIBLE
@@ -189,6 +196,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
             }
 
         }catch (e:Exception){
+            Log.d("rAdpater", "catch")
             e.printStackTrace()
         }
     }
