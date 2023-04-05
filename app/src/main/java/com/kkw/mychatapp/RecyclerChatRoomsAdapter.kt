@@ -15,6 +15,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.firestore.DocumentChange
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.firestore.ktx.toObjects
 import com.kkw.mychatapp.data.ChatRoom
 import com.kkw.mychatapp.data.FirebasePath
@@ -84,8 +85,6 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
 //                }
 //
 //            })
-
-
 
         FirebasePath.chatRoomPath
             .whereEqualTo("users.${myUid}", true)
@@ -181,11 +180,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
         try{
             var unconfirmedCount = chatRooms[position].messages!!
                 .filter {
-//                Message.toObject(it.value as HashMap<String, Any>).unconfirmedOpponent.containsKey(myUid)
-//                        && (Message.toObject(it.value as HashMap<String, Any>).unconfirmedOpponent[myUid] == true)
-                    it.value.unconfirmedOpponent.containsKey(myUid)
-                            && it.value.unconfirmedOpponent[myUid] == true
-
+                    it.value.unconfirmedOpponent.containsKey(myUid) && it.value.unconfirmedOpponent[myUid] == true
             }.size
 
             if(unconfirmedCount>0){
@@ -200,8 +195,6 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
             e.printStackTrace()
         }
     }
-
-
 
 
     inner class ViewHolder(itemView: ListChatroomItemBinding) : RecyclerView.ViewHolder(itemView.root){
@@ -221,40 +214,53 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
         return ViewHolder(ListChatroomItemBinding.bind(view))
     }
 
-
-
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val roomKey = chatRoomKeys[position]
         var userIdList = chatRooms[position].users!!.keys
 //        var opponent = userIdList.first{ it != myUid }
-        val opponent = userIdList as MutableSet<String>
-        opponent.removeIf {it==myUid}
+        //val opponent = userIdList as MutableSet<String>
+        val opponents = userIdList.toMutableList()
+        opponents.removeIf {it==myUid}
 
         holder.chatRoomKey = roomKey
         var chatRoomName = ""
 
-        FirebasePath.user.orderByChild("uid")
-            .addListenerForSingleValueEvent(object : ValueEventListener{
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    for (data in snapshot.children){
-//                        holder.chatRoomKey=data.key.toString()!!
-                        var user = data.getValue<User>()!!
-                        if(opponent.contains(user.uid)){
-                            holder.opponentUser.add(user)
-                            chatRoomName+=user.name
-                            chatRoomName+=", "
-                        }
-                    }
-                    if(chatRoomName.isNotEmpty()){
-                        holder.txt_name.text = chatRoomName.substring(0, chatRoomName.length-3)
-                    }
+        FirebasePath.userPath
+            .whereIn("uid", opponents)
+            .get()
+            .addOnSuccessListener {
+                querySnapshot->    
+                querySnapshot.forEach {
+                    chatRoomName += it.toObject<User>().name
+                    chatRoomName+=", "
                 }
+                if(chatRoomName.isNotEmpty())
+                    holder.txt_name.text = chatRoomName.substring(0, chatRoomName.length-2)
+            }
+        
 
-                override fun onCancelled(error: DatabaseError) {
-                    Log.d("ChatRoomAdapter_bind", "error")
-                }
-
-            })
+//        FirebasePath.user.orderByChild("uid")
+//            .addListenerForSingleValueEvent(object : ValueEventListener{
+//                override fun onDataChange(snapshot: DataSnapshot) {
+//                    for (data in snapshot.children){
+////                        holder.chatRoomKey=data.key.toString()!!
+//                        var user = data.getValue<User>()!!
+//                        if(opponent.contains(user.uid)){
+//                            holder.opponentUser.add(user)
+//                            chatRoomName+=user.name
+//                            chatRoomName+=", "
+//                        }
+//                    }
+//                    if(chatRoomName.isNotEmpty()){
+//                        holder.txt_name.text = chatRoomName.substring(0, chatRoomName.length-3)
+//                    }
+//                }
+//
+//                override fun onCancelled(error: DatabaseError) {
+//                    Log.d("ChatRoomAdapter_bind", "error")
+//                }
+//
+//            })
 
         holder.background.setOnClickListener(){
             try{
@@ -300,19 +306,19 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
             if (monthAgo > 0)
                 return monthAgo.toString() + "개월 전"
             else {
-                if (dayAgo > 0) {
+                return if (dayAgo > 0) {
                     if (dayAgo == 1)
-                        return "어제"
+                        "어제"
                     else
-                        return dayAgo.toString() + "일 전"
+                        dayAgo.toString() + "일 전"
                 } else {
                     if (hourAgo > 0)
-                        return hourAgo.toString() + "시간 전"
+                        hourAgo.toString() + "시간 전"
                     else {
                         if (minuteAgo > 0)
-                            return minuteAgo.toString() + "분 전"
+                            minuteAgo.toString() + "분 전"
                         else
-                            return "방금"
+                            "방금"
                     }
                 }
             }

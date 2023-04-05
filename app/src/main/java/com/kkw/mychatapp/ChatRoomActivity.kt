@@ -141,17 +141,6 @@ class ChatRoomActivity : AppCompatActivity() {
             }.addOnCanceledListener {
                 Log.i("putMessage", "실패")
             }
-
-//        FirebasePath.chatRoomPath
-//            .document(chatRoomKey)
-//            .update(mapOf("messages.$messageId" to message))
-//            .addOnSuccessListener {
-//                Log.i("putMessage", "성공")
-//                edit_message.text.clear()
-//            }.addOnCanceledListener {
-//                Log.i("putMessage", "실패")
-//            }
-
     }
 
     private fun putMessage(){
