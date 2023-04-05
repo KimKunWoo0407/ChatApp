@@ -7,22 +7,23 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
+import com.google.firebase.firestore.DocumentChange
+import com.google.firebase.firestore.ktx.toObjects
 import com.kkw.mychatapp.data.ChatRoom
 import com.kkw.mychatapp.data.FirebasePath
+import com.kkw.mychatapp.data.Message
 import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.ListChatroomItemBinding
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Objects
 import java.util.TimeZone
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -33,9 +34,29 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     var allChatRooms : ArrayList<ChatRoom> = arrayListOf()
     var chatRoomKeys: ArrayList<String> = arrayListOf()
     val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
+    var sorted = false
+
+    var initNum = 0
+    var count  = 0
 
     init{
         setupAllUserList()
+    }
+
+    fun sortChatRooms(){
+        allChatRooms = ArrayList(allChatRooms.sortedWith(
+            compareBy { chatRoom ->
+                chatRoom.messages!!.values.sortedWith(compareBy { it.sent_date })
+                    .last().sent_date
+            }
+        ))
+        sorted = true
+
+        if(shouldShown){
+            chatRooms = allChatRooms.clone() as ArrayList<ChatRoom>
+        }
+
+        notifyDataSetChanged()
     }
 
     private fun setupAllUserList(){
@@ -64,19 +85,57 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
 //                }
 //
 //            })
+
+
+
         FirebasePath.chatRoomPath
             .whereEqualTo("users.${myUid}", true)
             .addSnapshotListener{
-                snapshot, e->
-                if(e!=null){
-                    Log.w("ChatRoom", "Listen failed.", e)
+                snapshot, error->
+                if(error!=null){
+                    Log.w("ChatRoom", "Listen failed.", error)
                     return@addSnapshotListener
                 }
-                snapshot?.forEach {
+
+                if(!sorted)
+                    initNum = snapshot!!.documentChanges.size
+
+                snapshot!!.documentChanges.forEach{
+                    change->
+                    var docSnapshot = change.document
+                    FirebasePath.chatRoomPath.document("${docSnapshot.id}").collection("messages")
+                        .get().addOnSuccessListener {
+                            querySnapshot->
+                            val myMap = querySnapshot.documents.associate{
+                                 it.id to it.data
+                            } as HashMap<String, Message>
+
+                            if(change.type == DocumentChange.Type.ADDED){
+                                allChatRooms.add(ChatRoom(users = docSnapshot.data["users"] as Map<String, Boolean>, messages = myMap))
+                                chatRoomKeys.add(docSnapshot.id)
+
+                                if(!sorted){
+                                    count++
+                                    if(count==initNum)
+                                        sortChatRooms()
+                                }
+
+                                if(sorted){
+                                    notifyItemInserted(chatRooms.size - 1)
+                                }
+                                Log.d("rAdapter", "Added")
+                            }
+                            else if(change.type==DocumentChange.Type.MODIFIED){
+                                Log.d("rAdapter", "modified")
+                            }
+
+                        }
 
                 }
+
             }
     }
+
 
     fun searchItem(target: ArrayList<User>){
 

@@ -10,26 +10,15 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.getValue
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.ktx.toObject
-import com.google.firebase.firestore.remote.WatchChange.DocumentChange
-import com.kkw.mychatapp.data.ChatRoom
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.Message
 import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.DateDeviderItemBinding
 import com.kkw.mychatapp.databinding.ListTalkItemBinding
 import com.kkw.mychatapp.databinding.ListTalkItemOtherBinding
-import java.text.MessageFormat
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.*
@@ -81,6 +70,12 @@ class RecyclerMessageAdapter(
         registration.remove()
     }
 
+    fun renewLastDate(date: String = ""){
+        if(date.isNotEmpty())
+            FirebasePath.chatRoomPath.document(chatRoomKey!!)
+                .update(mapOf("lastDate" to date))
+    }
+
     private fun getMessages(){
 //        chatRoomPath.child("messages")
 //            .addValueEventListener(object : ValueEventListener{
@@ -113,11 +108,10 @@ class RecyclerMessageAdapter(
                     it.documentChanges.forEach{
                         change->
                         var doc = change.document
-                        var msg = Message.toObject(doc.data as HashMap<String, Object>)
+                        var msg = Message.toObject(doc.data as HashMap<String, Any>)
 //                        messages.add(Pair(doc.id, msg))
                         if(change.type == com.google.firebase.firestore.DocumentChange.Type.ADDED)
                         {
-                            //var msg = Message.toObject(doc.data as HashMap<String, Object>)
 //                            Log.d("mAdapterAdded", "${doc.id}")
                             messages.add(MessagePair(doc.id, msg))
                             if(msg.senderUid!=myUid)
@@ -128,6 +122,7 @@ class RecyclerMessageAdapter(
                             {
                                 notifyItemInserted(messages.size - 1)
                                 recyclerView.scrollToPosition(messages.size - 1)
+                                renewLastDate(msg.sent_date)
                             }
 
                         }else if(change.type == com.google.firebase.firestore.DocumentChange.Type.MODIFIED){
@@ -150,6 +145,8 @@ class RecyclerMessageAdapter(
                         for(pos in messages.indices){
                             idIndexMap[messages[pos].first] = pos
                         }
+                        if(messages.isNotEmpty())
+                            renewLastDate(messages.last().second.sent_date)
                         notifyDataSetChanged()
                     }
                     //notifyDataSetChanged()

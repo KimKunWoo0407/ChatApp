@@ -5,13 +5,14 @@ data class ChatRoom(
     val messages: Map<String, Message>? = HashMap(),
     //val messages: ArrayList<Message>? = arrayListOf(),
     var singleRoom: Boolean = true,
-    var roomKey: String=""
+    var roomKey: String="",
+    var lastDate: String=""
 ):java.io.Serializable{
 
     companion object{
-        fun toObject(myMap : HashMap<String, Object>): ChatRoom{
+        fun toObject(myMap : HashMap<String, Any>): ChatRoom{
             var msg : HashMap<String, Message> = HashMap()
-            (myMap["messages"] as HashMap<String, HashMap<String, Object>>).forEach {
+            (myMap["messages"] as HashMap<String, HashMap<String, Any>>).forEach {
                 msg[it.key] = Message.toObject(it.value)
             }
 

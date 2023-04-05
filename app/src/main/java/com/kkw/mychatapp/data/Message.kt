@@ -9,7 +9,7 @@ data class Message(
     val unconfirmedOpponent: Map<String, Boolean> = HashMap(),
 ):java.io.Serializable{
     companion object{
-        fun toObject(myMap : HashMap<String, Object>): Message {
+        fun toObject(myMap : HashMap<String, Any>): Message {
             return Message(
                 myMap["senderUid"].toString(),
                 myMap["sent_date"].toString(),
