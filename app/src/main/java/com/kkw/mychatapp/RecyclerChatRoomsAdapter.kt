@@ -140,6 +140,8 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
                                 if(idIndexMap[docSnapshot.id]!=null){
                                     chatRooms[idIndexMap[docSnapshot.id]!!].second = chatroom
                                     notifyItemChanged(idIndexMap[docSnapshot.id]!!)
+                                }else{
+                                    Log.d("rAdapter", "null")
                                 }
                                 Log.d("rAdapter", "modified")
                             }
@@ -180,12 +182,12 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     private fun setupLastMessageAndDate(holder: ViewHolder, position: Int){
 
         try{
-
-            val lastMessage = chatRooms[position].second.messages!!.values.sortedWith(
-                compareBy {
-                    it.sent_date
-                    !it.date
-                }
+            
+            val lastMessage = chatRooms[position].second.messages!!.values.toList().sortedWith(
+                compareBy (
+                    {it.sent_date},
+                    {!it.date}
+                )
             ).last()
 
             holder.txt_message.text = lastMessage.content
