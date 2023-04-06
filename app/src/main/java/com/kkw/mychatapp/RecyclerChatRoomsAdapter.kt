@@ -10,13 +10,8 @@ import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.getValue
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.ktx.toObject
-import com.google.firebase.firestore.ktx.toObjects
 import com.kkw.mychatapp.data.ChatRoom
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.Message
@@ -24,14 +19,13 @@ import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.ListChatroomItemBinding
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Objects
 import java.util.TimeZone
 
 @RequiresApi(Build.VERSION_CODES.O)
 class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = true) : RecyclerView.Adapter<RecyclerChatRoomsAdapter.ViewHolder>() {
 
-    var chatRooms: ArrayList<ChatRoom> = arrayListOf()
-    var allChatRooms : ArrayList<ChatRoom> = arrayListOf()
+    var chatRooms: ArrayList<MyPair<String, ChatRoom>> = arrayListOf()
+    var allChatRooms : ArrayList<MyPair<String, ChatRoom>> = arrayListOf()
     var chatRoomKeys: ArrayList<String> = arrayListOf()
     val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
     var sorted = false
@@ -46,16 +40,23 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     }
 
     fun sortChatRooms(){
+
+        chatRooms.clear()
+
         allChatRooms = ArrayList(allChatRooms.sortedWith(
             compareBy { chatRoom ->
-                chatRoom.messages!!.values.sortedWith(compareBy { it.sent_date })
+                chatRoom.second.messages!!.values.sortedWith(compareBy { it.sent_date })
                     .last().sent_date
             }
         ))
         sorted = true
 
         if(shouldShown){
-            chatRooms = allChatRooms.clone() as ArrayList<ChatRoom>
+            chatRooms = allChatRooms.clone() as ArrayList<MyPair<String,ChatRoom>>
+
+            for(pos in chatRooms.indices){
+                idIndexMap[chatRooms[pos].first]=pos
+            }
         }
 
         notifyDataSetChanged()
@@ -102,16 +103,23 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
 
                 snapshot!!.documentChanges.forEach{
                     change->
-                    var docSnapshot = change.document
-                    FirebasePath.chatRoomPath.document("${docSnapshot.id}").collection("messages")
+                    val docSnapshot = change.document
+                    FirebasePath.chatRoomPath.document(docSnapshot.id).collection("messages")
                         .get().addOnSuccessListener {
                             querySnapshot->
                             val myMap = querySnapshot.documents.associate{
                                  it.id to Message.toObject(it.data as HashMap<String, Any>)
                             } as HashMap<String, Message>
 
+                            val chatroom = ChatRoom(
+                                users = docSnapshot.data["users"] as Map<String, Boolean>,
+                                singleRoom = docSnapshot.data["singleRoom"] as Boolean,
+                                lastDate = docSnapshot.data["lastDate"] as String,
+                                messages = myMap
+                            )
+
                             if(change.type == DocumentChange.Type.ADDED){
-                                allChatRooms.add(ChatRoom(users = docSnapshot.data["users"] as Map<String, Boolean>, messages = myMap))
+                                allChatRooms.add(MyPair(docSnapshot.id, chatroom))
                                 chatRoomKeys.add(docSnapshot.id)
 
                                 if(!sorted){
@@ -120,12 +128,17 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
                                         sortChatRooms()
                                 }
 
-                                if(sorted){
+                                if(sorted && shouldShown){
+                                    idIndexMap[docSnapshot.id] = chatRooms.size -1
                                     notifyItemInserted(chatRooms.size - 1)
                                 }
                                 Log.d("rAdapter", "Added")
                             }
                             else if(change.type==DocumentChange.Type.MODIFIED){
+                                if(idIndexMap[docSnapshot.id]!=null){
+                                    chatRooms[idIndexMap[docSnapshot.id]!!].second = chatroom
+                                    notifyItemChanged(idIndexMap[docSnapshot.id]!!)
+                                }
                                 Log.d("rAdapter", "modified")
                             }
 
@@ -136,22 +149,26 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
             }
     }
 
-
     fun searchItem(target: ArrayList<User>){
-
         chatRooms.clear()
+        idIndexMap.clear()
 
-        if(target.isNullOrEmpty()){
+        if(target.isEmpty()){
             Log.d("searchItem", "target null or Empty")
         }else {
-            var result: ArrayList<ChatRoom> = arrayListOf()
+            val result: ArrayList<MyPair<String, ChatRoom>> = arrayListOf()
 
             target.forEach{
-                var uid = it.uid
-                var tmp = allChatRooms.filter { chatRoom -> chatRoom.users.contains(uid) }
+                val uid = it.uid
+                val tmp = allChatRooms.filter { chatRoom -> chatRoom.second.users.contains(uid) }
                 result.addAll(tmp)
             }
-            result.distinctBy { chatRoom->chatRoom.roomKey }.forEach { chatRooms.add(it) }
+            result.distinctBy { chatRoom->chatRoom.first }.forEach { chatRooms.add(it) }
+
+        }
+
+        for(pos in chatRooms.indices){
+            idIndexMap[chatRooms[pos].first]=pos
         }
 
         notifyDataSetChanged()
@@ -162,7 +179,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
 
         try{
 
-            var lastMessage = chatRooms[position].messages!!.values.sortedWith(
+            val lastMessage = chatRooms[position].second.messages!!.values.sortedWith(
                 compareBy {
                     it.sent_date
                     !it.date
@@ -180,7 +197,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     private fun setUpMessageCount(holder: ViewHolder, position: Int){
 
         try{
-            var unconfirmedCount = chatRooms[position].messages!!
+            val unconfirmedCount = chatRooms[position].second.messages!!
                 .filter {
                     it.value.unconfirmedOpponent.containsKey(myUid) && it.value.unconfirmedOpponent[myUid] == true
             }.size
@@ -193,7 +210,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
             }
 
         }catch (e:Exception){
-            Log.d("rAdpater", "catch")
+            Log.d("rAdapter", "catch")
             e.printStackTrace()
         }
     }
@@ -218,7 +235,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val roomKey = chatRoomKeys[position]
-        var userIdList = chatRooms[position].users!!.keys
+        val userIdList = chatRooms[position].second.users.keys
 //        var opponent = userIdList.first{ it != myUid }
         //val opponent = userIdList as MutableSet<String>
         val opponents = userIdList.toMutableList()
@@ -233,7 +250,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
             .addOnSuccessListener {
                 querySnapshot->    
                 querySnapshot.forEach {
-                    var user = it.toObject<User>()
+                    val user = it.toObject<User>()
                     holder.opponentUser.add(user)
                     chatRoomName += user.name
                     chatRoomName+=", "
@@ -268,9 +285,9 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
 
         holder.background.setOnClickListener(){
             try{
-                var intent = Intent(context, ChatRoomActivity::class.java)
-                intent.putExtra("ChatRoom", chatRooms[position])
-                intent.putExtra("Opponent", holder.opponentUser!!)
+                val intent = Intent(context, ChatRoomActivity::class.java)
+                intent.putExtra("ChatRoom", chatRooms[position].second)
+                intent.putExtra("Opponent", holder.opponentUser)
                 intent.putExtra("ChatRoomKey", chatRoomKeys[position])
                 intent.putExtra("Name", chatRoomName)
                 context.startActivity(intent)
@@ -280,7 +297,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
             }
         }
 
-        if(chatRooms[position].messages!!.isNotEmpty()){
+        if(chatRooms[position].second.messages!!.isNotEmpty()){
             setupLastMessageAndDate(holder, position)
             setUpMessageCount(holder, position)
         }
@@ -288,24 +305,24 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
 
     private fun getLastMessageTimeString(lastTimeString: String):String{
         try {
-            var currentTime = LocalDateTime.now().atZone(TimeZone.getDefault().toZoneId()) //현재 시각
-            var dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+            val currentTime = LocalDateTime.now().atZone(TimeZone.getDefault().toZoneId()) //현재 시각
+            val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 
-            var messageMonth = lastTimeString.substring(4, 6).toInt()
-            var messageDate = lastTimeString.substring(6, 8).toInt()
-            var messageHour = lastTimeString.substring(8, 10).toInt()
-            var messageMinute = lastTimeString.substring(10, 12).toInt()
+            val messageMonth = lastTimeString.substring(4, 6).toInt()
+            val messageDate = lastTimeString.substring(6, 8).toInt()
+            val messageHour = lastTimeString.substring(8, 10).toInt()
+            val messageMinute = lastTimeString.substring(10, 12).toInt()
 
-            var formattedCurrentTimeString = currentTime.format(dateTimeFormatter)
-            var currentMonth = formattedCurrentTimeString.substring(4, 6).toInt()
-            var currentDate = formattedCurrentTimeString.substring(6, 8).toInt()
-            var currentHour = formattedCurrentTimeString.substring(8, 10).toInt()
-            var currentMinute = formattedCurrentTimeString.substring(10, 12).toInt()
+            val formattedCurrentTimeString = currentTime.format(dateTimeFormatter)
+            val currentMonth = formattedCurrentTimeString.substring(4, 6).toInt()
+            val currentDate = formattedCurrentTimeString.substring(6, 8).toInt()
+            val currentHour = formattedCurrentTimeString.substring(8, 10).toInt()
+            val currentMinute = formattedCurrentTimeString.substring(10, 12).toInt()
 
-            var monthAgo = currentMonth - messageMonth
-            var dayAgo = currentDate - messageDate
-            var hourAgo = currentHour - messageHour
-            var minuteAgo = currentMinute - messageMinute
+            val monthAgo = currentMonth - messageMonth
+            val dayAgo = currentDate - messageDate
+            val hourAgo = currentHour - messageHour
+            val minuteAgo = currentMinute - messageMinute
 
             if (monthAgo > 0)
                 return monthAgo.toString() + "개월 전"

@@ -39,7 +39,6 @@ class RecyclerMessageAdapter(
     opponents: ArrayList<User>?
     ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    //var messages : ArrayList<Pair<String, Message>> = arrayListOf()
     var messages : ArrayList<MyPair<String, Message>> = arrayListOf()
 
     private val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()

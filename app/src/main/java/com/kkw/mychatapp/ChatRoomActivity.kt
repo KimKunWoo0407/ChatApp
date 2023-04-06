@@ -118,7 +118,7 @@ class ChatRoomActivity : AppCompatActivity() {
             roomTitle += (it.name + ", ")
         }
         Log.d("ChatRoomActivity", "here")
-        txt_title.text = roomTitle.substring(0, roomTitle.length-3)
+        txt_title.text = roomTitle.substring(0, roomTitle.length-2)
     }
 
 
