@@ -131,6 +131,7 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
         lateinit var itemListener:IItemClickListener
 
         private fun includedCheck(position: Int) : Boolean{
+            Log.d("uAdapter", "$position")
             return ((context as ChatRoomActivity).supportFragmentManager.findFragmentById(R.id.container) as AddOpponentFragment)
                 .curOpponents.contains(users[position])
         }

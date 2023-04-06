@@ -45,6 +45,13 @@ class AddOpponentFragment(val chatRoomKey:String, val curOpponents: ArrayList<Us
         return binding!!.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initializeView()
+        initializeListener()
+        setUpRecycler()
+    }
+
 
     private fun initializeView(){
         firebaseDatabase = FirebaseDatabase.getInstance().reference
@@ -91,14 +98,26 @@ class AddOpponentFragment(val chatRoomKey:String, val curOpponents: ArrayList<Us
     }
 
     private fun addOpponent(){
-        addedOpponenet.forEach{
-            FirebasePath.chatRoom
-                .child(chatRoomKey).child("users")
-                .updateChildren(hashMapOf<String, Any>(it.uid!! to true))
+//        addedOpponenet.forEach{
+//            FirebasePath.chatRoom
+//                .child(chatRoomKey).child("users")
+//                .updateChildren(hashMapOf<String, Any>(it.uid!! to true))
+//                .addOnSuccessListener {
+//                    Log.d("addOpponent", "성공")
+//                }.addOnCanceledListener {
+//                    Log.i("putMessage", "실패")
+//                }
+//        }
+
+        var doc =  FirebasePath.chatRoomPath
+            .document("$chatRoomKey")
+
+        addedOpponenet.forEach {
+           doc.get()
                 .addOnSuccessListener {
-                    Log.d("addOpponent", "성공")
-                }.addOnCanceledListener {
-                    Log.i("putMessage", "실패")
+                    snapshot->
+                    if((snapshot.data!!["users"] as HashMap<String, Boolean>)[it.uid] == null)
+                        doc.update(mapOf("users.${it.uid}" to true))
                 }
         }
 
@@ -132,12 +151,7 @@ class AddOpponentFragment(val chatRoomKey:String, val curOpponents: ArrayList<Us
         })
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        initializeView()
-        initializeListener()
-        setUpRecycler()
-    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

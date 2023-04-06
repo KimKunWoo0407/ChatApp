@@ -30,7 +30,7 @@ interface MessageHolder{
     fun bind(position: Int)
 }
 
-data class MessagePair<T, U>(var first : T, var second: U)
+data class MyPair<T, U>(var first : T, var second: U)
 
 @RequiresApi(Build.VERSION_CODES.O)
 class RecyclerMessageAdapter(
@@ -40,7 +40,7 @@ class RecyclerMessageAdapter(
     ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     //var messages : ArrayList<Pair<String, Message>> = arrayListOf()
-    var messages : ArrayList<MessagePair<String, Message>> = arrayListOf()
+    var messages : ArrayList<MyPair<String, Message>> = arrayListOf()
 
     private val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
     val recyclerView = (context as ChatRoomActivity).recycler_talks
@@ -113,7 +113,7 @@ class RecyclerMessageAdapter(
                         if(change.type == com.google.firebase.firestore.DocumentChange.Type.ADDED)
                         {
 //                            Log.d("mAdapterAdded", "${doc.id}")
-                            messages.add(MessagePair(doc.id, msg))
+                            messages.add(MyPair(doc.id, msg))
                             if(msg.senderUid!=myUid)
                                 setShown(messages.size - 1)
                             idIndexMap[doc.id] = messages.size -1

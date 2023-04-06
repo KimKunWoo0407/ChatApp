@@ -39,6 +39,8 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     var initNum = 0
     var count  = 0
 
+    var idIndexMap = mutableMapOf<String, Int>()
+
     init{
         setupAllUserList()
     }
@@ -231,7 +233,9 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
             .addOnSuccessListener {
                 querySnapshot->    
                 querySnapshot.forEach {
-                    chatRoomName += it.toObject<User>().name
+                    var user = it.toObject<User>()
+                    holder.opponentUser.add(user)
+                    chatRoomName += user.name
                     chatRoomName+=", "
                 }
                 if(chatRoomName.isNotEmpty())
