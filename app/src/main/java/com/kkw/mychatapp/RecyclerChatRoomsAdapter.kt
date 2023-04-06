@@ -129,6 +129,8 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
                                 }
 
                                 if(sorted && shouldShown){
+                                    if(idIndexMap[docSnapshot.id]==null)
+                                        chatRooms.add(MyPair(docSnapshot.id, chatroom))
                                     idIndexMap[docSnapshot.id] = chatRooms.size -1
                                     notifyItemInserted(chatRooms.size - 1)
                                 }
