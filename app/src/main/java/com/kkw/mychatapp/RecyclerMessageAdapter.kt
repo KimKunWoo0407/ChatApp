@@ -69,10 +69,13 @@ class RecyclerMessageAdapter(
         registration.remove()
     }
 
-    fun renewLastDate(date: String = ""){
-        if(date.isNotEmpty())
+    fun renewLastDate(date: String = "", added: Boolean = true){
+        if(date.isNotEmpty() && added)
             FirebasePath.chatRoomPath.document(chatRoomKey!!)
                 .update(mapOf("lastDate" to date))
+        else
+            FirebasePath.chatRoomPath.document(chatRoomKey!!)
+                .update(mapOf("modifiedDate" to date))
     }
 
     private fun getMessages(){
@@ -112,6 +115,7 @@ class RecyclerMessageAdapter(
                         if(change.type == com.google.firebase.firestore.DocumentChange.Type.ADDED)
                         {
 //                            Log.d("mAdapterAdded", "${doc.id}")
+                            Log.d("mAdapter", "Added")
                             messages.add(MyPair(doc.id, msg))
                             if(msg.senderUid!=myUid)
                                 setShown(messages.size - 1)
@@ -126,8 +130,10 @@ class RecyclerMessageAdapter(
 
                         }else if(change.type == com.google.firebase.firestore.DocumentChange.Type.MODIFIED){
 //                            Log.d("mAdapterModified", "${doc.id} : ${idIndexMap[doc.id]}")
+                            Log.d("mAdapter", "modified")
                             messages[idIndexMap[doc.id]!!].second = msg
                             notifyItemChanged(idIndexMap[doc.id]!!)
+                            renewLastDate(msg.sent_date, false)
                         }
 
                     }

@@ -49,10 +49,15 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
 
         chatRooms.clear()
 
+        Log.d("sortChatroom", "${allChatRooms}")
+
+        if(allChatRooms.isEmpty())
+            return
+
         allChatRooms = ArrayList(allChatRooms.sortedWith(
             compareBy { chatRoom ->
-                chatRoom.second.messages!!.values.sortedWith(compareBy { it.sent_date })
-                    .last().sent_date
+                chatRoom.second.messages?.values?.sortedWith(compareBy { it.sent_date })
+                    ?.last()?.sent_date
             }
         ))
         sorted = true
@@ -212,6 +217,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     private fun setUpMessageCount(holder: ViewHolder, position: Int){
 
         try{
+
             val unconfirmedCount = chatRooms[position].second.messages!!
                 .filter {
                     it.value.unconfirmedOpponent.containsKey(myUid) && it.value.unconfirmedOpponent[myUid] == true

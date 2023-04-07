@@ -25,6 +25,7 @@ import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.ActivityChatRoomBinding
 import java.io.Serializable
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.TimeZone
 
@@ -46,7 +47,7 @@ class ChatRoomActivity : AppCompatActivity() {
     lateinit var myUid : String
     lateinit var roomTitle : String
     lateinit var container : FrameLayout
-    lateinit var messageAdapter: RecyclerMessageAdapter
+    var messageAdapter: RecyclerMessageAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,7 +58,8 @@ class ChatRoomActivity : AppCompatActivity() {
         initializeProperty()
         initializeView()
         initializeListener()
-        setupRecycler()
+        if(chatRoomKey.isNotEmpty())
+            setupRecycler()
         //setupChatRooms()
     }
 
@@ -94,7 +96,8 @@ class ChatRoomActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        messageAdapter.removeRegistration()
+        if(messageAdapter!=null)
+            messageAdapter!!.removeRegistration()
         _binding = null
     }
 
@@ -121,27 +124,41 @@ class ChatRoomActivity : AppCompatActivity() {
         txt_title.text = roomTitle.substring(0, roomTitle.length-2)
     }
 
-
-    private fun saveIntoDB(message: Message){
-//        FirebasePath.chatRoom
-//            .child(chatRoomKey).child("messages")
-//            .push().setValue(message).addOnSuccessListener {
-//                Log.i("putMessage", "성공")
-//                edit_message.text.clear()
-//            }.addOnCanceledListener {
-//                Log.i("putMessage", "실패")
-//            }
-
+    private fun saveMessage(message:ArrayList<Message>, isFirst: Boolean = false){
         FirebasePath.chatRoomPath
             .document(chatRoomKey)
             .collection("messages")
-            .add(message)
+            .add(message[0])
             .addOnSuccessListener {
                 Log.i("putMessage", "성공")
                 edit_message.text.clear()
+                if(message.size>1){
+                    FirebasePath.chatRoomPath
+                        .document(chatRoomKey)
+                        .collection("messages")
+                        .add(message[1])
+                }
+                if(isFirst){
+                    setupRecycler()
+                }
             }.addOnCanceledListener {
                 Log.i("putMessage", "실패")
             }
+    }
+
+    private fun saveIntoDB(message: ArrayList<Message>){
+        if(chatRoomKey.isEmpty()){
+            FirebasePath.chatRoomPath
+                .add(chatRoom)
+                .addOnSuccessListener {
+                    chatRoomKey=it.id
+                    initializeListener()
+                    saveMessage(message, true)
+                }
+        }else{
+            saveMessage(message)
+        }
+
     }
 
     private fun putMessage(){
@@ -150,25 +167,35 @@ class ChatRoomActivity : AppCompatActivity() {
             //날짜 구분
             var curDate = getDateTimeString()
 
-            var latest  = (recycler_talks.adapter as RecyclerMessageAdapter).getLatestMessage()
+            var latest : Message? = if(messageAdapter == null)
+                null
+            else
+                messageAdapter!!.getLatestMessage()
+
             var dateAdd = false
 
             if(latest==null || curDate.substring(0,4) != latest.sent_date.substring(0,4) || curDate.substring(6,8) != latest.sent_date.substring(6,8)){
                 dateAdd = true
             }
 
+            var Messages = arrayListOf<Message>()
+
             var dateMessage:Message
 
             if(dateAdd){
                 dateMessage = Message("0000", curDate, "", date = true)
-                saveIntoDB(dateMessage)
+                Messages.add(dateMessage)
+                //saveIntoDB(dateMessage)
             }
 
             var oppMap : HashMap<String, Boolean>  = hashMapOf()
             opponentUser.forEach { oppMap[it.uid!!] = true }
 
             var message = Message(senderUid = myUid, sent_date = curDate, content = edit_message.text.toString(), unconfirmedOpponent = oppMap)
-            saveIntoDB(message)
+
+            Messages.add(message)
+
+            saveIntoDB(Messages)
 
         }catch (e: Exception){
             e.printStackTrace()
@@ -177,7 +204,6 @@ class ChatRoomActivity : AppCompatActivity() {
     }
 
     fun setupRecycler(){
-
         recycler_talks.layoutManager = LinearLayoutManager(this)
         messageAdapter = RecyclerMessageAdapter(this, chatRoomKey, opponentUser)
         recycler_talks.adapter = messageAdapter
@@ -185,8 +211,8 @@ class ChatRoomActivity : AppCompatActivity() {
 
     private fun getDateTimeString() : String{
         try {
-            var localDateTime = LocalDateTime.now()
-            localDateTime.atZone(TimeZone.getDefault().toZoneId())
+            var localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"))
+            //localDateTime.atZone(TimeZone.getDefault().toZoneId())
             var dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
             return localDateTime.format(dateTimeFormatter).toString()
         } catch (e: Exception) {

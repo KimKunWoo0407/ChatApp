@@ -200,11 +200,12 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
                 if(!ref.isEmpty){
                     goToChatRoom(chatRoom, opponent, ref.first().id)
                 }else{
-                    FirebasePath.chatRoomPath
-                        .add(chatRoom)
-                        .addOnSuccessListener {
-                            goToChatRoom(chatRoom, opponent, it.id)
-                        }
+                    goToChatRoom(chatRoom, opponent)
+//                    FirebasePath.chatRoomPath
+//                        .add(chatRoom)
+//                        .addOnSuccessListener {
+//                            goToChatRoom(chatRoom, opponent, it.id)
+//                        }
                 }
             } .addOnFailureListener { e ->
                 Log.w("UAdapter", "Error adding document", e)
