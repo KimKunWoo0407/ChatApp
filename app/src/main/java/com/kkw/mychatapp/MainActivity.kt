@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     private val binding get() = _binding!!
     lateinit var firebaseDatabase: DatabaseReference
     lateinit var recycler_chatroom: RecyclerView
+    lateinit var chatRoomsAdapter: RecyclerChatRoomsAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +40,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        chatRoomsAdapter.removeRegistration()
         _binding = null
     }
 
@@ -95,7 +97,8 @@ class MainActivity : AppCompatActivity() {
 
     fun setupRecycler(){
         recycler_chatroom.layoutManager = LinearLayoutManager(this)
-        recycler_chatroom.adapter = RecyclerChatRoomsAdapter(this)
+        chatRoomsAdapter = RecyclerChatRoomsAdapter(this)
+        recycler_chatroom.adapter = chatRoomsAdapter
     }
 
     override fun onBackPressed() {

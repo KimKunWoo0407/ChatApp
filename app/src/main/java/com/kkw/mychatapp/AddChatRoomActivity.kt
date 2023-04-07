@@ -27,6 +27,7 @@ class AddChatRoomActivity : AppCompatActivity() {
     lateinit var firebaseDatabase : DatabaseReference
     lateinit var recycler_people : RecyclerView
     lateinit var recyclerChatRoom: RecyclerView
+    lateinit var chatRoomsAdapter: RecyclerChatRoomsAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +41,7 @@ class AddChatRoomActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        chatRoomsAdapter.removeRegistration()
         _binding = null
     }
 
@@ -71,8 +73,9 @@ class AddChatRoomActivity : AppCompatActivity() {
 
                 //adapter.searchItem(s.toString())
 
-                var roomAdapter = recyclerChatRoom?.adapter as RecyclerChatRoomsAdapter
-                roomAdapter.searchItem(adapter.searchItem(s.toString()))
+//                var roomAdapter = recyclerChatRoom?.adapter as RecyclerChatRoomsAdapter
+//                roomAdapter.searchItem(adapter.searchItem(s.toString()))
+                chatRoomsAdapter.searchItem(adapter.searchItem(s.toString()))
 
             }
 
@@ -86,7 +89,8 @@ class AddChatRoomActivity : AppCompatActivity() {
         recycler_people.adapter = RecyclerUserAdapter(this)
 
         recyclerChatRoom.layoutManager = LinearLayoutManager(this)
-        recyclerChatRoom.adapter = RecyclerChatRoomsAdapter(this, false)
+        chatRoomsAdapter = RecyclerChatRoomsAdapter(this, false)
+        recyclerChatRoom.adapter = chatRoomsAdapter
 
     }
 }

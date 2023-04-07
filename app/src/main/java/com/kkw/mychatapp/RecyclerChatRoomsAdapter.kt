@@ -10,7 +10,10 @@ import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentChange
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.toObject
 import com.kkw.mychatapp.data.ChatRoom
 import com.kkw.mychatapp.data.FirebasePath
@@ -32,6 +35,9 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
 
     var initNum = 0
     var count  = 0
+
+    lateinit var query : Query
+    lateinit var registration : ListenerRegistration
 
     var idIndexMap = mutableMapOf<String, Int>()
 
@@ -62,6 +68,10 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
         notifyDataSetChanged()
     }
 
+    fun removeRegistration() {
+        registration.remove()
+    }
+
     private fun setupAllUserList(){
 //        FirebasePath.chatRoom
 //            .orderByChild("users/$myUid").equalTo(true)
@@ -89,8 +99,10 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
 //
 //            })
 
-        FirebasePath.chatRoomPath
+        query = FirebasePath.chatRoomPath
             .whereEqualTo("users.${myUid}", true)
+
+        registration = query
             .addSnapshotListener{
                 snapshot, error->
                 if(error!=null){
@@ -182,7 +194,6 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     private fun setupLastMessageAndDate(holder: ViewHolder, position: Int){
 
         try{
-            
             val lastMessage = chatRooms[position].second.messages!!.values.toList().sortedWith(
                 compareBy (
                     {it.sent_date},
@@ -292,7 +303,8 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
                 val intent = Intent(context, ChatRoomActivity::class.java)
                 intent.putExtra("ChatRoom", chatRooms[position].second)
                 intent.putExtra("Opponent", holder.opponentUser)
-                intent.putExtra("ChatRoomKey", chatRoomKeys[position])
+//                intent.putExtra("ChatRoomKey", chatRoomKeys[position])
+                intent.putExtra("ChatRoomKey", chatRooms[position].first)
                 intent.putExtra("Name", chatRoomName)
                 context.startActivity(intent)
                 //(context as AppCompatActivity).finish()
