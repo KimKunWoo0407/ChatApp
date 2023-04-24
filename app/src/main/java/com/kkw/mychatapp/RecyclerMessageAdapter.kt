@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.Query
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.Message
 import com.kkw.mychatapp.data.User
@@ -44,9 +45,9 @@ class RecyclerMessageAdapter(
     private val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
     val recyclerView = (context as ChatRoomActivity).recycler_talks
     var userMap = mutableMapOf<String, User>()
-    var sorted = false
+    var sorted = true
 
-    lateinit var query : CollectionReference
+//    lateinit var query : CollectionReference
     lateinit var registration : ListenerRegistration
 
     var idIndexMap = mutableMapOf<String, Int>()
@@ -80,8 +81,8 @@ class RecyclerMessageAdapter(
 
     private fun getMessages(){
         messages.clear()
-        query = FirebasePath.chatRoomPath.document(chatRoomKey!!)
-            .collection("messages")
+        var query = FirebasePath.chatRoomPath.document(chatRoomKey!!)
+            .collection("messages").orderBy("sent_date")
 
         registration = query
             .addSnapshotListener{
@@ -95,6 +96,7 @@ class RecyclerMessageAdapter(
                         change->
                         var doc = change.document
                         var msg = Message.toObject(doc.data as HashMap<String, Any>)
+                        Log.d("mAdapterAdded", "${doc.id}")
 //                        messages.add(Pair(doc.id, msg))
                         if(change.type == com.google.firebase.firestore.DocumentChange.Type.ADDED)
                         {
@@ -105,12 +107,9 @@ class RecyclerMessageAdapter(
                                 setShown(messages.size - 1)
                             idIndexMap[doc.id] = messages.size -1
 //                            Log.d("mAdapterAdded", "${doc.id} : ${idIndexMap[doc.id]}")
-                            if(sorted)
-                            {
-                                notifyItemInserted(messages.size - 1)
-                                recyclerView.scrollToPosition(messages.size - 1)
-                                renewLastDate(msg.sent_date)
-                            }
+                            notifyItemInserted(messages.size - 1)
+                            recyclerView.scrollToPosition(messages.size - 1)
+                            renewLastDate(msg.sent_date)
 
                         }else if(change.type == com.google.firebase.firestore.DocumentChange.Type.MODIFIED){
 //                            Log.d("mAdapterModified", "${doc.id} : ${idIndexMap[doc.id]}")
@@ -121,23 +120,23 @@ class RecyclerMessageAdapter(
                         }
 
                     }
-                    if(!sorted)
-                    {
-//                        Log.d("mAdapter", "sorted")
-                        messages = ArrayList(messages.sortedWith(
-                            compareBy(
-                                {it.second.sent_date},
-                                {!it.second.date}
-                            )
-                        ))
-                        sorted = true
-                        for(pos in messages.indices){
-                            idIndexMap[messages[pos].first] = pos
-                        }
-                        if(messages.isNotEmpty())
-                            renewLastDate(messages.last().second.sent_date)
-                        notifyDataSetChanged()
-                    }
+//                    if(!sorted)
+//                    {
+////                        Log.d("mAdapter", "sorted")
+//                        messages = ArrayList(messages.sortedWith(
+//                            compareBy(
+//                                {it.second.sent_date},
+//                                {!it.second.date}
+//                            )
+//                        ))
+//                        sorted = true
+//                        for(pos in messages.indices){
+//                            idIndexMap[messages[pos].first] = pos
+//                        }
+//                        if(messages.isNotEmpty())
+//                            renewLastDate(messages.last().second.sent_date)
+//                        notifyDataSetChanged()
+//                    }
                     //notifyDataSetChanged()
                     recyclerView.scrollToPosition(messages.size - 1)
                 }

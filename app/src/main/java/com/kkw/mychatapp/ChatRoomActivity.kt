@@ -188,7 +188,7 @@ class ChatRoomActivity : AppCompatActivity() {
             var dateMessage:Message
 
             if(dateAdd){
-                dateMessage = Message("0000", curDate, "", date = true)
+                dateMessage = Message("0000", curDate+"0", "", date = true)
                 Messages.add(dateMessage)
                 //saveIntoDB(dateMessage)
             }
@@ -196,7 +196,7 @@ class ChatRoomActivity : AppCompatActivity() {
             var oppMap : HashMap<String, Boolean>  = hashMapOf()
             opponentUser.forEach { oppMap[it.uid!!] = true }
 
-            var message = Message(senderUid = myUid, sent_date = curDate, content = edit_message.text.toString(), unconfirmedOpponent = oppMap)
+            var message = Message(senderUid = myUid, sent_date = curDate+"1", content = edit_message.text.toString(), unconfirmedOpponent = oppMap)
 
             Messages.add(message)
 
