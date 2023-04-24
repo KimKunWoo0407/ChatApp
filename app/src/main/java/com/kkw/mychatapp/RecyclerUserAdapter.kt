@@ -112,8 +112,8 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
 
             background.setOnClickListener(){
 
-                //goToProfile(users[position].uid!!)
-                addChatRoom(position)
+                goToProfile(users[position].uid!!)
+//                addChatRoom(position)
             }
         }
     }
@@ -144,7 +144,7 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
             if(!_included){
                 itemListener=listener
 
-                background.setOnClickListener(){
+                background.setOnClickListener{
                     if(itemListener!=null){
                         itemListener.onItemClick(this@ToSelectViewHolder,it, adapterPosition)
                     }
@@ -184,60 +184,35 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
         (holder as UserHolder).bind(position)
     }
 
-    private fun addChatRoom(position: Int){ //1대1 채팅방 만들기
-        val opponent = arrayListOf<User>()
-        opponent.add(users[position])
-        //var database = FirebaseDatabase.getInstance().getReference("ChatRoom")
-        var chatRoom = ChatRoom(
-            users = mapOf(myUid to true, opponent[0].uid!! to true)
-        )
-
-        FirebasePath.chatRoomPath
-            .whereEqualTo("singleRoom", true)
-            .whereEqualTo("users.${opponent[0].uid!!}", true)
-            .get()
-            .addOnSuccessListener { ref->
-                if(!ref.isEmpty){
-                    goToChatRoom(chatRoom, opponent, ref.first().id)
-                }else{
-                    goToChatRoom(chatRoom, opponent)
-//                    FirebasePath.chatRoomPath
-//                        .add(chatRoom)
-//                        .addOnSuccessListener {
-//                            goToChatRoom(chatRoom, opponent, it.id)
-//                        }
-                }
-            } .addOnFailureListener { e ->
-                Log.w("UAdapter", "Error adding document", e)
-            }
-
-        //var myUid = FirebaseAuth.getInstance().uid
-            //database.child("chatRooms")
-//        FirebasePath.chatRoom
-//            //.orderByChild("users/${opponent[0].uid}").equalTo(true)
-//            .orderByChild("singleRoom").equalTo(opponent[0].uid)
-//            .addListenerForSingleValueEvent(object : ValueEventListener{
-//                override fun onDataChange(snapshot: DataSnapshot) {
-//                    if(snapshot.value==null){
-//                        //database.child("chatRooms")
-//                        FirebasePath.chatRoom
-//                            .push()
-//                            .setValue(chatRoom).addOnSuccessListener {
-//                                goToChatRoom(chatRoom, opponent)
-//                            }
-//                    }else{
-//                        // context.startActivity(Intent(context, MainActivity::class.java))
-//                        Log.d("userAdapter", snapshot.key!!)
-//                        goToChatRoom(chatRoom, opponent, snapshot.key!!)
-//                    }
-//                }
+//    private fun addChatRoom(position: Int){ //1대1 채팅방 만들기
+//        val opponent = arrayListOf<User>()
+//        opponent.add(users[position])
+//        //var database = FirebaseDatabase.getInstance().getReference("ChatRoom")
+//        var chatRoom = ChatRoom(
+//            users = mapOf(myUid to true, opponent[0].uid!! to true)
+//        )
 //
-//                override fun onCancelled(error: DatabaseError) {
-//                    Log.d("UserAdapterAdd", "error!")
-//                }
+//        FirebasePath.chatRoomPath
+//            .whereEqualTo("singleRoom", true)
+//            .whereEqualTo("users.${opponent[0].uid!!}", true)
+//            .get()
+//            .addOnSuccessListener { ref->
+//                if(!ref.isEmpty){
+//                    goToChatRoom(chatRoom, opponent, ref.first().id)
+//                }else{
+//                    goToChatRoom(chatRoom, opponent)
 //
-//            })
-    }
+////                    FirebasePath.chatRoomPath
+////                        .add(chatRoom)
+////                        .addOnSuccessListener {
+////                            goToChatRoom(chatRoom, opponent, it.id)
+////                        }
+//                }
+//            } .addOnFailureListener { e ->
+//                Log.w("UAdapter", "Error adding document", e)
+//            }
+//
+//    }
 
     fun goToProfile(opponentUid : String){
        var intent = Intent(context, UserProfile::class.java)
@@ -245,15 +220,14 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
        context.startActivity(intent)
     }
 
-    fun goToChatRoom(chatRoom: ChatRoom, opponent: ArrayList<User>, roomKey:String=""){
-        var intent = Intent(context, ChatRoomActivity::class.java)
-        intent.putExtra("ChatRoom", chatRoom)
-        intent.putExtra("Opponent", opponent)
-        intent.putExtra("ChatRoomKey", roomKey)
-        intent.putExtra("Name", opponent[0].name)
-        context.startActivity(intent)
-        //(context as AppCompatActivity).finish()
-    }
+//    fun goToChatRoom(chatRoom: ChatRoom, opponent: ArrayList<User>, roomKey:String=""){
+//        var intent = Intent(context, ChatRoomActivity::class.java)
+//        intent.putExtra("ChatRoom", chatRoom)
+//        intent.putExtra("Opponent", opponent)
+//        intent.putExtra("ChatRoomKey", roomKey)
+//        intent.putExtra("Name", opponent[0].name)
+//        context.startActivity(intent)
+//    }
 
     override fun getItemCount(): Int {
         return users.size

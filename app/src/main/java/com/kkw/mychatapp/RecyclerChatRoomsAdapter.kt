@@ -29,7 +29,6 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
 
     var chatRooms: ArrayList<MyPair<String, ChatRoom>> = arrayListOf()
     var allChatRooms : ArrayList<MyPair<String, ChatRoom>> = arrayListOf()
-    var chatRoomKeys: ArrayList<String> = arrayListOf()
     val myUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
     var sorted = false
 
@@ -48,8 +47,6 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     fun sortChatRooms(){
 
         chatRooms.clear()
-
-        Log.d("sortChatroom", "${allChatRooms}")
 
         if(allChatRooms.isEmpty())
             return
@@ -116,7 +113,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
                 }
 
                 if(!sorted)
-                    initNum = snapshot!!.documentChanges.size
+                    initNum = snapshot!!.documentChanges.size //최초 불러올 때 몇개까지 받아야 섞을 지 설정
 
                 snapshot!!.documentChanges.forEach{
                     change->
@@ -137,15 +134,14 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
 
                             if(change.type == DocumentChange.Type.ADDED){
                                 allChatRooms.add(MyPair(docSnapshot.id, chatroom))
-                                chatRoomKeys.add(docSnapshot.id)
 
                                 if(!sorted){
                                     count++
                                     if(count==initNum)
                                         sortChatRooms()
-                                }
+                                } //다 받아왔으면 그때 변환. added가 먼저 실행되고 modified는 나중에 실행된 다는 실험을 통해 할 수 있었음
 
-                                if(sorted && shouldShown){
+                                if(sorted && shouldShown){ //IdIndedMap에 없다는 것은 추가된 적 없었다는 것. db에 저장된 순서그대로 저장가능
                                     if(idIndexMap[docSnapshot.id]==null)
                                         chatRooms.add(MyPair(docSnapshot.id, chatroom))
                                     idIndexMap[docSnapshot.id] = chatRooms.size -1
@@ -155,6 +151,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
                             }
                             else if(change.type==DocumentChange.Type.MODIFIED){
                                 if(idIndexMap[docSnapshot.id]!=null){
+                                    //recyclierview가 position 기반이기 때문에 키와 position을 mapping하여 변화된 id를 알아내면 그에 대한 position의 viewholder를 bind한다
                                     chatRooms[idIndexMap[docSnapshot.id]!!].second = chatroom
                                     notifyItemChanged(idIndexMap[docSnapshot.id]!!)
                                 }else{
@@ -255,7 +252,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val roomKey = chatRoomKeys[position]
+        val roomKey = chatRooms[position].first
         val userIdList = chatRooms[position].second.users.keys
 //        var opponent = userIdList.first{ it != myUid }
         //val opponent = userIdList as MutableSet<String>

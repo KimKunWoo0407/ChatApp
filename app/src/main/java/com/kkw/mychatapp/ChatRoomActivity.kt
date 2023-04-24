@@ -122,6 +122,11 @@ class ChatRoomActivity : AppCompatActivity() {
         }
         Log.d("ChatRoomActivity", "here")
         txt_title.text = roomTitle.substring(0, roomTitle.length-2)
+        if (opponentUser.size>1){
+            FirebasePath.chatRoomPath
+                .document(chatRoomKey).update(mapOf("singleRoom" to false))
+
+        }
     }
 
     private fun saveMessage(message:ArrayList<Message>, isFirst: Boolean = false){

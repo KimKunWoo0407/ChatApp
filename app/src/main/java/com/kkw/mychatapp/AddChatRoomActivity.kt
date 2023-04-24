@@ -47,8 +47,6 @@ class AddChatRoomActivity : AppCompatActivity() {
 
     fun initializeView(){
         //firebaseDatabase = FirebaseDatabase.getInstance().reference!!
-
-
         btn_exit = binding.imgBtnBack
         edit_opponent = binding.editOpponentName
         recycler_people = binding.recyclerPeople
