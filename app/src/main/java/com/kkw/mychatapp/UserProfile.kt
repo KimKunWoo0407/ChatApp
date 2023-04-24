@@ -66,7 +66,6 @@ class UserProfile : AppCompatActivity() {
     private fun addChatRoom(){ //1대1 채팅방 만들기
         val opponents = arrayListOf<User>()
         opponents.add(opponent)
-        //var database = FirebaseDatabase.getInstance().getReference("ChatRoom")
         var chatRoom = ChatRoom(
             users = mapOf(myUid to true, opponent.uid!! to true)
         )
@@ -80,12 +79,6 @@ class UserProfile : AppCompatActivity() {
                     goToChatRoom(chatRoom, opponents, ref.first().id)
                 }else{
                     goToChatRoom(chatRoom, opponents)
-
-//                    FirebasePath.chatRoomPath
-//                        .add(chatRoom)
-//                        .addOnSuccessListener {
-//                            goToChatRoom(chatRoom, opponent, it.id)
-//                        }
                 }
             } .addOnFailureListener { e ->
                 Log.w("UAdapter", "Error adding document", e)
