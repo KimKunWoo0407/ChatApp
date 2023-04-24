@@ -75,32 +75,6 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     }
 
     private fun setupAllUserList(){
-//        FirebasePath.chatRoom
-//            .orderByChild("users/$myUid").equalTo(true)
-//            .addListenerForSingleValueEvent(object : ValueEventListener{
-//                override fun onDataChange(snapshot: DataSnapshot) {
-//                    chatRooms.clear()
-//                    for(data in snapshot.children){
-//                        var roomData = data.getValue<ChatRoom>()!!
-//                        roomData.roomKey=data.key.toString()!!
-//
-//                        //allChatRooms.add(data.getValue<ChatRoom>()!!)
-//                        allChatRooms.add(roomData)
-//
-//                        chatRoomKeys.add(data.key!!)
-//                    }
-//
-//                    if(shouldShown)
-//                        chatRooms = allChatRooms.clone() as ArrayList<ChatRoom>
-//
-//                    notifyDataSetChanged()
-//                }
-//                override fun onCancelled(error: DatabaseError) {
-//                  Log.d("ChatRoomAdapter_setup", "error")
-//                }
-//
-//            })
-
         query = FirebasePath.chatRoomPath
             .whereEqualTo("users.${myUid}", true)
 

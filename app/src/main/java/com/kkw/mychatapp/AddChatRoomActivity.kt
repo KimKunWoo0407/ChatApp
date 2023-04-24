@@ -69,10 +69,6 @@ class AddChatRoomActivity : AppCompatActivity() {
             override fun afterTextChanged(s: Editable?) {
                 var adapter = recycler_people?.adapter as RecyclerUserAdapter
 
-                //adapter.searchItem(s.toString())
-
-//                var roomAdapter = recyclerChatRoom?.adapter as RecyclerChatRoomsAdapter
-//                roomAdapter.searchItem(adapter.searchItem(s.toString()))
                 chatRoomsAdapter.searchItem(adapter.searchItem(s.toString()))
 
             }

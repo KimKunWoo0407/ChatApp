@@ -98,17 +98,6 @@ class AddOpponentFragment(val chatRoomKey:String, val curOpponents: ArrayList<Us
     }
 
     private fun addOpponent(){
-//        addedOpponenet.forEach{
-//            FirebasePath.chatRoom
-//                .child(chatRoomKey).child("users")
-//                .updateChildren(hashMapOf<String, Any>(it.uid!! to true))
-//                .addOnSuccessListener {
-//                    Log.d("addOpponent", "성공")
-//                }.addOnCanceledListener {
-//                    Log.i("putMessage", "실패")
-//                }
-//        }
-
         var doc =  FirebasePath.chatRoomPath
             .document("$chatRoomKey")
 

@@ -79,22 +79,6 @@ class RecyclerMessageAdapter(
     }
 
     private fun getMessages(){
-//        chatRoomPath.child("messages")
-//            .addValueEventListener(object : ValueEventListener{
-//                override fun onDataChange(snapshot: DataSnapshot) {
-//                    messages.clear()
-//                    for(data in snapshot.children){
-//                        messages.add(data.getValue<Message>()!!)
-//                        messagesKeys.add(data.key!!)
-//                    }
-//                    notifyDataSetChanged()
-//                    recyclerView.scrollToPosition(messages.size - 1)
-//                }
-//                override fun onCancelled(error: DatabaseError) {
-//                }
-//
-//            })
-
         messages.clear()
         query = FirebasePath.chatRoomPath.document(chatRoomKey!!)
             .collection("messages")
@@ -307,14 +291,6 @@ class RecyclerMessageAdapter(
     }
 
     fun setShown(position: Int){
-//        chatRoomPath.child("messages")
-//            .child(messagesKeys[position])
-////            .child("confirmed").setValue(true)
-//            .child("unconfirmedOpponent")
-//            .updateChildren(hashMapOf<String, Any>(myUid to false))
-//            .addOnSuccessListener {
-////                Log.i("checkShown", "성공")
-//            }
 
         var doc =  FirebasePath.chatRoomPath.document(chatRoomKey!!)
             .collection("messages")

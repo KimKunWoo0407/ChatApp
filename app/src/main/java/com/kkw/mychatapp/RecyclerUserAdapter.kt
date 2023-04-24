@@ -166,7 +166,7 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
        intent.putExtra("uid", opponentUid)
        context.startActivity(intent)
     }
-    
+
     override fun getItemCount(): Int {
         return users.size
     }
