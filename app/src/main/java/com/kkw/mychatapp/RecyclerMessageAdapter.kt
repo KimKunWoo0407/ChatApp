@@ -96,7 +96,7 @@ class RecyclerMessageAdapter(
                         change->
                         var doc = change.document
                         var msg = Message.toObject(doc.data as HashMap<String, Any>)
-                        Log.d("mAdapterAdded", "${doc.id}")
+//                        Log.d("mAdapterAdded", "${doc.id}")
 //                        messages.add(Pair(doc.id, msg))
                         if(change.type == com.google.firebase.firestore.DocumentChange.Type.ADDED)
                         {
@@ -120,24 +120,6 @@ class RecyclerMessageAdapter(
                         }
 
                     }
-//                    if(!sorted)
-//                    {
-////                        Log.d("mAdapter", "sorted")
-//                        messages = ArrayList(messages.sortedWith(
-//                            compareBy(
-//                                {it.second.sent_date},
-//                                {!it.second.date}
-//                            )
-//                        ))
-//                        sorted = true
-//                        for(pos in messages.indices){
-//                            idIndexMap[messages[pos].first] = pos
-//                        }
-//                        if(messages.isNotEmpty())
-//                            renewLastDate(messages.last().second.sent_date)
-//                        notifyDataSetChanged()
-//                    }
-                    //notifyDataSetChanged()
                     recyclerView.scrollToPosition(messages.size - 1)
                 }
             }

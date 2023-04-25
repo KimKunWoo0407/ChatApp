@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.getValue
+import com.google.firebase.firestore.FieldValue
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.FragmentAddOpponentBinding
@@ -107,6 +108,7 @@ class AddOpponentFragment(val chatRoomKey:String, val curOpponents: ArrayList<Us
                     snapshot->
                     if((snapshot.data!!["users"] as HashMap<String, Boolean>)[it.uid] == null)
                         doc.update(mapOf("users.${it.uid}" to true))
+                        doc.update("currentUsers", FieldValue.arrayUnion(it.uid))
                 }
         }
 

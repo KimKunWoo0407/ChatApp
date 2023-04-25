@@ -6,7 +6,8 @@ data class ChatRoom(
     //val messages: ArrayList<Message>? = arrayListOf(),
     var singleRoom: Boolean = true,
     var roomKey: String="",
-    var lastDate: String=""
+    var lastDate: String="",
+    var currentUsers: ArrayList<String> = arrayListOf()
 ):java.io.Serializable{
 
     companion object{
@@ -20,8 +21,8 @@ data class ChatRoom(
                 users = myMap["users"] as HashMap<String, Boolean>,
                 messages = msg,
                 singleRoom = myMap["singleRoom"] as Boolean,
-                roomKey = myMap["roomKey"].toString()
-
+                roomKey = myMap["roomKey"].toString(),
+                currentUsers = myMap["currentUser"] as ArrayList<String>
             )
         }
     }

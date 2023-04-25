@@ -35,7 +35,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     var initNum = 0
     var count  = 0
 
-    lateinit var query : Query
+    //lateinit var query : Query
     lateinit var registration : ListenerRegistration
 
     var idIndexMap = mutableMapOf<String, Int>()
@@ -75,8 +75,9 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     }
 
     private fun setupAllUserList(){
-        query = FirebasePath.chatRoomPath
-            .whereEqualTo("users.${myUid}", true)
+        var query = FirebasePath.chatRoomPath
+            .whereArrayContains("currentUsers",myUid).orderBy("lastDate", Query.Direction.DESCENDING)
+//            .whereEqualTo("users.${myUid}", true).orderBy("lastDate")
 
         registration = query
             .addSnapshotListener{
@@ -85,9 +86,6 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
                     Log.w("ChatRoom", "Listen failed.", error)
                     return@addSnapshotListener
                 }
-
-                if(!sorted)
-                    initNum = snapshot!!.documentChanges.size //최초 불러올 때 몇개까지 받아야 섞을 지 설정
 
                 snapshot!!.documentChanges.forEach{
                     change->
@@ -103,19 +101,14 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
                                 users = docSnapshot.data["users"] as Map<String, Boolean>,
                                 singleRoom = docSnapshot.data["singleRoom"] as Boolean,
                                 lastDate = docSnapshot.data["lastDate"] as String,
-                                messages = myMap
+                                messages = myMap,
+                                currentUsers = docSnapshot.data["currentUsers"] as ArrayList<String>
                             )
 
                             if(change.type == DocumentChange.Type.ADDED){
                                 allChatRooms.add(MyPair(docSnapshot.id, chatroom))
-
-                                if(!sorted){
-                                    count++
-                                    if(count==initNum)
-                                        sortChatRooms()
-                                } //다 받아왔으면 그때 변환. added가 먼저 실행되고 modified는 나중에 실행된 다는 실험을 통해 할 수 있었음
-
-                                if(sorted && shouldShown){ //IdIndedMap에 없다는 것은 추가된 적 없었다는 것. db에 저장된 순서그대로 저장가능
+                                
+                                if(shouldShown){ //IdIndedMap에 없다는 것은 추가된 적 없었다는 것. db에 저장된 순서그대로 저장가능
                                     if(idIndexMap[docSnapshot.id]==null)
                                         chatRooms.add(MyPair(docSnapshot.id, chatroom))
                                     idIndexMap[docSnapshot.id] = chatRooms.size -1

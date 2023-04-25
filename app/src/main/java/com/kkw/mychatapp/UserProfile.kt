@@ -66,8 +66,10 @@ class UserProfile : AppCompatActivity() {
     private fun addChatRoom(){ //1대1 채팅방 만들기
         val opponents = arrayListOf<User>()
         opponents.add(opponent)
+        var curUsers = arrayListOf(myUid!!, opponent.uid!!)
         var chatRoom = ChatRoom(
-            users = mapOf(myUid to true, opponent.uid!! to true)
+            users = mapOf(myUid to true, opponent.uid!! to true),
+            currentUsers = curUsers
         )
 
         FirebasePath.chatRoomPath
