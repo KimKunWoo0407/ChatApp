@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,6 +27,13 @@ class MainActivity : AppCompatActivity() {
     lateinit var recycler_chatroom: RecyclerView
     lateinit var chatRoomsAdapter: RecyclerChatRoomsAdapter
 
+    private val callback = object : OnBackPressedCallback(true){
+        override fun handleOnBackPressed() {
+            signOut()
+        }
+
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -35,6 +43,8 @@ class MainActivity : AppCompatActivity() {
         initializeView()
         initializeListener()
         setupRecycler()
+
+        this.onBackPressedDispatcher.addCallback(this, callback)
 
     }
 
@@ -101,8 +111,8 @@ class MainActivity : AppCompatActivity() {
         recycler_chatroom.adapter = chatRoomsAdapter
     }
 
-    override fun onBackPressed() {
-        signOut()
-    }
+//    override fun onBackPressed() {
+//        signOut()
+//    }
 
 }
