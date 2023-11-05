@@ -23,6 +23,7 @@ import com.kkw.mychatapp.databinding.ListChatroomItemBinding
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.TimeZone
+import kotlin.reflect.typeOf
 
 @RequiresApi(Build.VERSION_CODES.O)
 class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = true) : RecyclerView.Adapter<RecyclerChatRoomsAdapter.ViewHolder>() {
@@ -87,12 +88,34 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
                     return@addSnapshotListener
                 }
 
+                Log.d("abcdefg", "${snapshot!!.documents}")
+                val aaa = snapshot.documents.map {
+                    docSnapshot->
+                    FirebasePath.chatRoomPath.document(docSnapshot.id).collection("messages")
+                        .get().addOnSuccessListener {
+                            querySnapshot ->
+                            val myMap = querySnapshot.documents.associate{
+                                it.id to Message.toObject(it.data as HashMap<String, Any>)
+                            } as HashMap<String, Message>
+
+                            val chatroom = ChatRoom(
+                                users = docSnapshot.data?.get("users") as Map<String, Boolean>,
+                                singleRoom = docSnapshot.data!!["singleRoom"] as Boolean,
+                                lastDate = docSnapshot.data!!["lastDate"] as String,
+                                messages = myMap,
+                                currentUsers = docSnapshot.data!!["currentUsers"] as ArrayList<String>
+                            )
+                        }
+
+                }
+
                 snapshot!!.documentChanges.forEach{
                     change->
                     val docSnapshot = change.document
                     FirebasePath.chatRoomPath.document(docSnapshot.id).collection("messages")
                         .get().addOnSuccessListener {
                             querySnapshot->
+                            
                             val myMap = querySnapshot.documents.associate{
                                  it.id to Message.toObject(it.data as HashMap<String, Any>)
                             } as HashMap<String, Message>
