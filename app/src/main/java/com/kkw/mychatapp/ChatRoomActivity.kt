@@ -1,10 +1,8 @@
 package com.kkw.mychatapp
 
-import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
@@ -16,18 +14,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.core.View
+import com.kkw.mychatapp.adapter.RecyclerMessageAdapter
 import com.kkw.mychatapp.data.ChatRoom
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.Message
 import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.ActivityChatRoomBinding
-import java.io.Serializable
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.TimeZone
 
 @RequiresApi(Build.VERSION_CODES.O)
 class ChatRoomActivity : AppCompatActivity() {

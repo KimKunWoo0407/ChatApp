@@ -1,4 +1,4 @@
-package com.kkw.mychatapp
+package com.kkw.mychatapp.adapter
 
 import android.content.Context
 import android.content.Intent
@@ -10,11 +10,12 @@ import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.toObject
+import com.kkw.mychatapp.ChatRoomActivity
+import com.kkw.mychatapp.R
 import com.kkw.mychatapp.data.ChatRoom
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.Message
@@ -23,7 +24,6 @@ import com.kkw.mychatapp.databinding.ListChatroomItemBinding
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.TimeZone
-import kotlin.reflect.typeOf
 
 @RequiresApi(Build.VERSION_CODES.O)
 class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = true) : RecyclerView.Adapter<RecyclerChatRoomsAdapter.ViewHolder>() {
@@ -45,32 +45,6 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
         setupAllUserList()
     }
 
-    fun sortChatRooms(){
-
-        chatRooms.clear()
-
-        if(allChatRooms.isEmpty())
-            return
-
-        allChatRooms = ArrayList(allChatRooms.sortedWith(
-            compareBy { chatRoom ->
-                chatRoom.second.messages?.values?.sortedWith(compareBy { it.sent_date })
-                    ?.last()?.sent_date
-            }
-        ))
-        sorted = true
-
-        if(shouldShown){
-            chatRooms = allChatRooms.clone() as ArrayList<MyPair<String,ChatRoom>>
-
-            for(pos in chatRooms.indices){
-                idIndexMap[chatRooms[pos].first]=pos
-            }
-        }
-
-        notifyDataSetChanged()
-    }
-
     fun removeRegistration() {
         registration.remove()
     }
@@ -78,7 +52,6 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
     private fun setupAllUserList(){
         var query = FirebasePath.chatRoomPath
             .whereArrayContains("currentUsers",myUid).orderBy("lastDate", Query.Direction.DESCENDING)
-//            .whereEqualTo("users.${myUid}", true).orderBy("lastDate")
 
         registration = query
             .addSnapshotListener{
@@ -266,30 +239,7 @@ class RecyclerChatRoomsAdapter(val context: Context, val shouldShown: Boolean = 
                 if(chatRoomName.isNotEmpty())
                     holder.txt_name.text = chatRoomName.substring(0, chatRoomName.length-2)
             }
-        
 
-//        FirebasePath.user.orderByChild("uid")
-//            .addListenerForSingleValueEvent(object : ValueEventListener{
-//                override fun onDataChange(snapshot: DataSnapshot) {
-//                    for (data in snapshot.children){
-////                        holder.chatRoomKey=data.key.toString()!!
-//                        var user = data.getValue<User>()!!
-//                        if(opponent.contains(user.uid)){
-//                            holder.opponentUser.add(user)
-//                            chatRoomName+=user.name
-//                            chatRoomName+=", "
-//                        }
-//                    }
-//                    if(chatRoomName.isNotEmpty()){
-//                        holder.txt_name.text = chatRoomName.substring(0, chatRoomName.length-3)
-//                    }
-//                }
-//
-//                override fun onCancelled(error: DatabaseError) {
-//                    Log.d("ChatRoomAdapter_bind", "error")
-//                }
-//
-//            })
 
         holder.background.setOnClickListener(){
             try{

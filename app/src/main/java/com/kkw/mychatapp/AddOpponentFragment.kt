@@ -4,7 +4,6 @@ import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -16,8 +15,8 @@ import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.database.*
-import com.google.firebase.database.ktx.getValue
 import com.google.firebase.firestore.FieldValue
+import com.kkw.mychatapp.adapter.RecyclerUserAdapter
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.FragmentAddOpponentBinding

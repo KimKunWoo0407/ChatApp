@@ -1,4 +1,4 @@
-package com.kkw.mychatapp
+package com.kkw.mychatapp.adapter
 
 import android.content.Context
 import android.os.Build
@@ -10,9 +10,9 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.Query
+import com.kkw.mychatapp.ChatRoomActivity
+import com.kkw.mychatapp.R
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.Message
 import com.kkw.mychatapp.data.User
@@ -162,7 +162,8 @@ class RecyclerMessageAdapter(
     }
 
 
-    inner class DateDivider(itemView:DateDeviderItemBinding): RecyclerView.ViewHolder(itemView.root), MessageHolder{
+    inner class DateDivider(itemView:DateDeviderItemBinding): RecyclerView.ViewHolder(itemView.root),
+        MessageHolder {
         private var txtDate = itemView.txtDate
 
         override fun bind(position: Int){
@@ -204,7 +205,8 @@ class RecyclerMessageAdapter(
         }
     }
 
-    inner class MyMessageViewHolder(itemView:ListTalkItemBinding): RecyclerView.ViewHolder(itemView.root), MessageHolder{
+    inner class MyMessageViewHolder(itemView:ListTalkItemBinding): RecyclerView.ViewHolder(itemView.root),
+        MessageHolder {
         var background = itemView.background
         var txtMessage = itemView.txtMessage
         var txtDate = itemView.txtDate
@@ -222,7 +224,8 @@ class RecyclerMessageAdapter(
         }
     }
 
-    inner class OtherMessageViewHolder(itemView: ListTalkItemOtherBinding):RecyclerView.ViewHolder(itemView.root), MessageHolder{
+    inner class OtherMessageViewHolder(itemView: ListTalkItemOtherBinding):RecyclerView.ViewHolder(itemView.root),
+        MessageHolder {
         var background = itemView.background
         var txtMessage = itemView.txtMessage
         var txtDate = itemView.txtDate

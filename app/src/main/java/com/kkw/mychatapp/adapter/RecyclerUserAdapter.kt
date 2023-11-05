@@ -1,4 +1,4 @@
-package com.kkw.mychatapp
+package com.kkw.mychatapp.adapter
 
 import android.content.Context
 import android.content.Intent
@@ -10,9 +10,12 @@ import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.ktx.getValue
 import com.google.firebase.firestore.ktx.toObject
-import com.kkw.mychatapp.data.ChatRoom
+import com.kkw.mychatapp.AddOpponentFragment
+import com.kkw.mychatapp.ChatRoomActivity
+import com.kkw.mychatapp.IItemClickListener
+import com.kkw.mychatapp.R
+import com.kkw.mychatapp.UserProfile
 import com.kkw.mychatapp.data.FirebasePath
 import com.kkw.mychatapp.data.User
 import com.kkw.mychatapp.databinding.ListAddPersonCheckItemBinding
@@ -32,7 +35,7 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
 
     //lateinit var currentUser: User
 
-    lateinit var listener:IItemClickListener
+    lateinit var listener: IItemClickListener
 
     fun setOnItemClickListener(clickListener: IItemClickListener){
         listener= clickListener
@@ -77,7 +80,8 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
         return matchedList.toCollection(ArrayList())
     }
 
-    inner class ViewHolder(itemView: ListPersonItemBinding) : RecyclerView.ViewHolder(itemView.root), UserHolder{
+    inner class ViewHolder(itemView: ListPersonItemBinding) : RecyclerView.ViewHolder(itemView.root),
+        UserHolder {
         var background = itemView.userBackground
         var txtName = itemView.userName
         var txtEmail = itemView.userEmail
@@ -94,7 +98,8 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
         }
     }
 
-    inner class ToSelectViewHolder(itemView: ListAddPersonCheckItemBinding) : RecyclerView.ViewHolder(itemView.root),UserHolder{
+    inner class ToSelectViewHolder(itemView: ListAddPersonCheckItemBinding) : RecyclerView.ViewHolder(itemView.root),
+        UserHolder {
 
         var background = itemView.userBackground
         var txtName = itemView.userName
@@ -104,7 +109,7 @@ class RecyclerUserAdapter (val context: Context, val roomKey: String = ""):
 
         var _included = false
 
-        lateinit var itemListener:IItemClickListener
+        lateinit var itemListener: IItemClickListener
 
         private fun includedCheck(position: Int) : Boolean{
             Log.d("uAdapter", "$position")
